@@ -1,0 +1,1 @@
+namespace MeelanoExecutiveConsole; public partial class App : System.Windows.Application { }

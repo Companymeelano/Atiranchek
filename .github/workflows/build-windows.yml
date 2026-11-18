@@ -1,0 +1,58 @@
+name: Build MEELANO Windows executable
+
+on:
+  push:
+    branches:
+      - arena/191d4206-atiranchek
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish-win-x64:
+    name: Build self-contained Windows x64 EXE
+    runs-on: windows-latest
+    steps:
+      - name: Check out current branch
+        uses: actions/checkout@v4
+
+      - name: Install .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore .\MeelanoExecutiveConsole\MeelanoExecutiveConsole.sln
+
+      - name: Build Release
+        run: dotnet build .\MeelanoExecutiveConsole\MeelanoExecutiveConsole.sln --configuration Release --no-restore
+
+      - name: Publish self-contained single-file EXE
+        run: >-
+          dotnet publish .\MeelanoExecutiveConsole\MeelanoExecutiveConsole.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          --output .\MeelanoExecutiveConsole\artifacts\win-x64
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -p:PublishTrimmed=false
+          -p:DebugType=None
+          -p:DebugSymbols=false
+
+      - name: Verify executable
+        shell: pwsh
+        run: |
+          $exe = '.\MeelanoExecutiveConsole\artifacts\win-x64\MeelanoExecutiveConsole.exe'
+          if (-not (Test-Path $exe)) { throw "Missing expected executable: $exe" }
+          Get-Item $exe | Select-Object FullName, Length
+
+      - name: Upload executable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MeelanoExecutiveConsole-win-x64
+          path: MeelanoExecutiveConsole/artifacts/win-x64/MeelanoExecutiveConsole.exe
+          if-no-files-found: error
+          retention-days: 14
