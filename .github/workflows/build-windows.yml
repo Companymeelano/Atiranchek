@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   publish-win-x64:
@@ -82,10 +82,28 @@ jobs:
           if (-not (Test-Path $setup)) { throw "Missing installer: $setup" }
           Get-Item $setup | Select-Object FullName, Length
 
-      - name: Upload installable setup
+      - name: Upload installable setup artifact
         uses: actions/upload-artifact@v7
         with:
           name: MEELANO-Executive-Console-Setup-win-x64
           path: MeelanoExecutiveConsole/artifacts/installer/MEELANO-Executive-Console-Setup-win-x64.exe
           if-no-files-found: error
           retention-days: 90
+
+      - name: Publish public prerelease download
+        if: contains(github.event.head_commit.message, '[publish-installer]')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $setup = '.\MeelanoExecutiveConsole\artifacts\installer\MEELANO-Executive-Console-Setup-win-x64.exe'
+          $releaseArgs = @(
+            'release', 'create', 'v1.0.0-demo', $setup,
+            '--repo', $env:GITHUB_REPOSITORY,
+            '--target', $env:GITHUB_SHA,
+            '--title', 'MEELANO Executive Console 1.0.0 - Windows x64 installer',
+            '--notes', 'Installable per-user Windows 10/11 x64 package. Self-contained; no separate .NET runtime required. Contains demo-only in-memory data and is not connected to SQL Server. The installer is not code-signed.',
+            '--prerelease'
+          )
+          & gh @releaseArgs
+          if ($LASTEXITCODE -ne 0) { throw "GitHub release creation failed with exit code $LASTEXITCODE." }
