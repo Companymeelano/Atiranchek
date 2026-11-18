@@ -455,7 +455,7 @@
                                         </Grid>
                                         <TextBlock Foreground="{StaticResource RedBrush}" FontSize="10" Margin="0,3,0,0" TextWrapping="Wrap">
                                             <Run Text="کمترین ماندهٔ تجمعیِ سناریو (از صفر): " />
-                                            <Run Text="{Binding SimulatedGap}" FontWeight="Bold" />
+                                            <Run Text="{Binding SimulatedGap, Mode=OneWay}" FontWeight="Bold" />
                                         </TextBlock>
                                     </StackPanel>
                                 </Grid>
