@@ -15,10 +15,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Check out current branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install .NET 8 SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 8.0.x
 
@@ -50,9 +50,9 @@ jobs:
           Get-Item $exe | Select-Object FullName, Length
 
       - name: Upload executable artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: MeelanoExecutiveConsole-win-x64
           path: MeelanoExecutiveConsole/artifacts/win-x64/MeelanoExecutiveConsole.exe
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 90
