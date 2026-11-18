@@ -85,26 +85,40 @@ jobs:
       - name: Smoke-test installed app startup
         shell: pwsh
         run: |
+          function Fail-SmokeTest([string]$message) {
+            $singleLine = $message -replace "`r`n|`n|`r", ' | '
+            $safeMessage = $singleLine.Replace('%', '%25').Replace(':', '%3A').Replace(',', '%2C')
+            Write-Host "::error title=MEELANO startup smoke test::$safeMessage"
+            throw $message
+          }
+
           $setup = '.\MeelanoExecutiveConsole\artifacts\installer\MEELANO-Executive-Console-Setup-win-x64.exe'
           $log = Join-Path $env:LOCALAPPDATA 'MEELANO\Logs\startup.log'
           if (Test-Path $log) { Remove-Item $log -Force }
 
-          $installerProcess = Start-Process -FilePath $setup `
-            -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' `
-            -Wait -PassThru
-          if ($installerProcess.ExitCode -ne 0) { throw "Silent setup failed with exit code $($installerProcess.ExitCode)." }
+          try {
+            $installerProcess = Start-Process -FilePath $setup `
+              -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' `
+              -Wait -PassThru
+          }
+          catch {
+            Fail-SmokeTest "Starting silent setup failed: $($_.Exception.ToString())"
+          }
+          if ($installerProcess.ExitCode -ne 0) { Fail-SmokeTest "Silent setup exited with code $($installerProcess.ExitCode)." }
 
           $installedExe = Join-Path $env:LOCALAPPDATA 'Programs\MEELANO Executive Console\MeelanoExecutiveConsole.exe'
-          if (-not (Test-Path $installedExe)) { throw "Installed application not found: $installedExe" }
-          $appProcess = Start-Process -FilePath $installedExe -PassThru
+          if (-not (Test-Path $installedExe)) { Fail-SmokeTest "Installed application not found: $installedExe" }
+          try {
+            $appProcess = Start-Process -FilePath $installedExe -PassThru
+          }
+          catch {
+            Fail-SmokeTest "Starting installed app failed: $($_.Exception.ToString())"
+          }
+
           Start-Sleep -Seconds 10
           $appProcess.Refresh()
-
-          if (Test-Path $log) {
-            Get-Content $log
-            throw "Application startup wrote an exception log: $log"
-          }
-          if ($appProcess.HasExited) { throw "Installed application exited with code $($appProcess.ExitCode)." }
+          if (Test-Path $log) { Fail-SmokeTest "Application startup exception log: $(Get-Content $log -Raw)" }
+          if ($appProcess.HasExited) { Fail-SmokeTest "Installed application exited with code $($appProcess.ExitCode)." }
           Stop-Process -Id $appProcess.Id -Force
 
       - name: Upload installable setup artifact
