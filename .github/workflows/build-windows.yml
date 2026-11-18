@@ -1,4 +1,4 @@
-name: Build MEELANO Windows executable
+name: Build MEELANO Windows installer
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   publish-win-x64:
-    name: Build self-contained Windows x64 EXE
+    name: Build self-contained Windows x64 app and installer
     runs-on: windows-latest
     steps:
       - name: Check out current branch
@@ -42,17 +42,50 @@ jobs:
           -p:DebugType=None
           -p:DebugSymbols=false
 
-      - name: Verify executable
+      - name: Verify application executable
         shell: pwsh
         run: |
           $exe = '.\MeelanoExecutiveConsole\artifacts\win-x64\MeelanoExecutiveConsole.exe'
           if (-not (Test-Path $exe)) { throw "Missing expected executable: $exe" }
           Get-Item $exe | Select-Object FullName, Length
 
-      - name: Upload executable artifact
+      - name: Upload portable executable
         uses: actions/upload-artifact@v7
         with:
           name: MeelanoExecutiveConsole-win-x64
           path: MeelanoExecutiveConsole/artifacts/win-x64/MeelanoExecutiveConsole.exe
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Ensure Inno Setup 6 is available
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup --no-progress --yes
+            if ($LASTEXITCODE -ne 0) { throw "Inno Setup installation failed with exit code $LASTEXITCODE." }
+          }
+          if (-not (Test-Path $iscc)) { throw "ISCC.exe was not found at $iscc" }
+          New-Item -ItemType Directory -Path '.\MeelanoExecutiveConsole\artifacts\installer' -Force | Out-Null
+
+      - name: Build installable setup EXE
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          & $iscc '.\MeelanoExecutiveConsole\Installer\MeelanoExecutiveConsole.iss'
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed with exit code $LASTEXITCODE." }
+
+      - name: Verify setup executable
+        shell: pwsh
+        run: |
+          $setup = '.\MeelanoExecutiveConsole\artifacts\installer\MEELANO-Executive-Console-Setup-win-x64.exe'
+          if (-not (Test-Path $setup)) { throw "Missing installer: $setup" }
+          Get-Item $setup | Select-Object FullName, Length
+
+      - name: Upload installable setup
+        uses: actions/upload-artifact@v7
+        with:
+          name: MEELANO-Executive-Console-Setup-win-x64
+          path: MeelanoExecutiveConsole/artifacts/installer/MEELANO-Executive-Console-Setup-win-x64.exe
           if-no-files-found: error
           retention-days: 90
