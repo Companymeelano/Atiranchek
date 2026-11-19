@@ -29,7 +29,7 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0">
                         <TextBlock Text="اتصال مستقیم و فقط‌خواندنی به SQL Server" FontSize="20" FontWeight="Bold" />
-                        <TextBlock Text="ورود · انتخاب دیتابیس · کشف schema · نگاشت راهنمایی‌شدهٔ چک و فروش"
+                        <TextBlock Text="ورود · انتخاب دیتابیس · تحلیل خودکار · بارگذاری گزارش چک و فروش"
                                    Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,5,0,0" />
                     </StackPanel>
                     <Button x:Name="ThemeToggleButton" Grid.Column="1" Content="☼ تم روشن" MinWidth="112"
@@ -39,7 +39,7 @@
             </Border>
 
             <TabControl x:Name="WizardTabs" Grid.Row="1" SelectedIndex="0">
-                <TabItem x:Name="ConnectionTab" Header="۱ · اتصال و کشف ساختار">
+                <TabItem x:Name="ConnectionTab" Header="اتصال و تحلیل خودکار">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="16">
                             <TextBlock Text="مقصد SQL Server" FontSize="17" FontWeight="Bold" />
@@ -128,16 +128,21 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Text="پایگاه داده" FontSize="14" FontWeight="Bold" />
-                                        <TextBlock Text="فقط دیتابیس‌هایی نمایش داده می‌شوند که حساب SQL به آن‌ها دسترسی دارد."
+                                        <TextBlock Text="پس از انتخاب دیتابیس، تحلیل و بارگذاری خودکار انجام می‌شود. فقط دیتابیس‌های قابل‌دسترسی نمایش داده می‌شوند."
                                                    Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                         <ComboBox x:Name="DatabaseCombo" Width="260" IsEnabled="False" SelectionChanged="Database_SelectionChanged" />
-                                        <Button x:Name="DiscoverButton" Content="کشف جدول‌ها و ستون‌ها" IsEnabled="False"
+                                        <Button x:Name="DiscoverButton" Content="تلاش مجدد برای بارگذاری" IsEnabled="False"
                                                 Style="{StaticResource GoldButtonStyle}" Click="DiscoverSchema_Click" />
                                     </StackPanel>
                                 </Grid>
                             </Border>
+
+                            <Expander Header="شرایط بارگذاری خودکار · راهنمای مدیر دیتابیس" Margin="0,0,0,12">
+                                <TextBlock Text="دو نمای یکتای MEELANO_Checks و MEELANO_Sales با ستون‌ها و واحدهای مشخص لازم است. این برنامه schema آتیران یا معنای مالی ستون‌ها را حدس نمی‌زند؛ جزئیات ستون‌ها و مقادیر مجاز در راهنمای README.fa.md آمده است. مدیر دیتابیس باید نماها را با دادهٔ واقعی تطبیق دهد."
+                                           Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="8" />
+                            </Expander>
 
                             <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
                                     CornerRadius="16" Padding="12">
@@ -153,7 +158,7 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel>
                                             <TextBlock Text="ساختار قابل‌دسترسی" FontSize="14" FontWeight="Bold" />
-                                            <TextBlock Text="متادیتا نمایش داده می‌شود؛ هیچ ردیفی از دادهٔ تجاری در مرحلهٔ کشف خوانده نمی‌شود."
+                                            <TextBlock Text="متادیتا نمایش داده می‌شود؛ نمای گزارش استاندارد به‌طور خودکار شناسایی و کنترل می‌شود. در صورت نقص یا ابهام، بارگذاری متوقف می‌شود."
                                                        Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
                                         </StackPanel>
                                         <TextBlock x:Name="SchemaCountText" Grid.Column="1" VerticalAlignment="Center"
@@ -175,80 +180,6 @@
                     </ScrollViewer>
                 </TabItem>
 
-                <TabItem x:Name="MappingTab" Header="۲ · نگاشت داده‌ها" IsEnabled="False">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <StackPanel Margin="16">
-                            <TextBlock Text="نگاشت شفاف ستون‌ها" FontSize="17" FontWeight="Bold" />
-                            <TextBlock Text="برنامه نام جدول‌ها یا ستون‌های آتیران را حدس نمی‌زند. هر فیلد را انتخاب کنید، مقدارهای نوع/وضعیت را صریح نگاشت کنید و سپس پیش‌نمایش کامل را بارگذاری کنید."
-                                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,5,0,12" />
-
-                            <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
-                                    CornerRadius="16" Padding="14" Margin="0,0,0,12">
-                                <StackPanel>
-                                    <TextBlock Text="چک‌ها" FontSize="15" FontWeight="Bold" />
-                                    <StackPanel Margin="0,8,0,4">
-                                        <TextBlock Text="منبع جدول/نما" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,0,0,4" />
-                                        <ComboBox x:Name="CheckTableCombo" SelectionChanged="CheckTable_SelectionChanged" />
-                                    </StackPanel>
-                                    <UniformGrid Columns="2" Margin="-3,0,-3,0">
-                                        <StackPanel Margin="3"><TextBlock Text="شمارهٔ یکتا · لازم" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="CheckNumberField" /></StackPanel>
-                                        <StackPanel Margin="3"><TextBlock Text="نوع چک · لازم" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="CheckKindField" SelectionChanged="CheckKindField_SelectionChanged" /></StackPanel>
-                                        <StackPanel Margin="3"><TextBlock Text="طرف حساب · لازم" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="CheckPartyField" /></StackPanel>
-                                        <StackPanel Margin="3"><TextBlock Text="مبلغ · لازم" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="CheckAmountField" SelectionChanged="CheckAmountField_SelectionChanged" /></StackPanel>
-                                        <StackPanel Margin="3"><TextBlock Text="واحد منبع مبلغ" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="CheckAmountUnitCombo" SelectedIndex="0"><ComboBoxItem Content="— واحد را صریح انتخاب کنید —" /><ComboBoxItem Content="تومان (بدون تبدیل)" Tag="1" /><ComboBoxItem Content="ریال (تقسیم بر ۱۰ برای تومان)" Tag="0.1" /></ComboBox></StackPanel>
-                                        <StackPanel Margin="3"><TextBlock Text="سررسید · SQL/شمسی" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="CheckDueDateField" /></StackPanel>
-                                        <StackPanel Margin="3"><TextBlock Text="وضعیت چک · لازم" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="CheckStatusField" SelectionChanged="CheckStatusField_SelectionChanged" /></StackPanel>
-                                        <StackPanel Margin="3"><TextBlock Text="بانک · اختیاری" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="CheckBankField" /></StackPanel>
-                                        <StackPanel Margin="3"><TextBlock Text="امتیاز ریسک ۰ تا ۱۰۰ · اختیاری" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="CheckRiskField" /></StackPanel>
-                                    </UniformGrid>
-                                    <Border Background="{DynamicResource InsetSurfaceBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="11" Padding="10" Margin="0,10,0,0">
-                                        <StackPanel>
-                                            <TextBlock Text="نگاشت مقدارهای نوع چک" FontWeight="SemiBold" FontSize="11" />
-                                            <TextBlock Text="پیشنهادهای نوع ممکن است خالی بمانند؛ هر مقدار منبع را بررسی و صریحاً به دریافتی یا پرداختی وصل کنید، از جمله NULL."
-                                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,3,0,6" />
-                                            <DataGrid x:Name="KindMappingsGrid" Height="170" AutoGenerateColumns="False" CanUserAddRows="False"
-                                                      CanUserDeleteRows="False" HeadersVisibility="Column" />
-                                        </StackPanel>
-                                    </Border>
-                                    <Border Background="{DynamicResource InsetSurfaceBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="11" Padding="10" Margin="0,8,0,0">
-                                        <StackPanel>
-                                            <TextBlock Text="نگاشت مقدارهای وضعیت چک" FontWeight="SemiBold" FontSize="11" />
-                                            <TextBlock Text="برای هر مقدار، یک وضعیت برنامه را انتخاب کنید؛ برنامه مقدار ناشناخته را خودکار به «در انتظار» تبدیل نمی‌کند."
-                                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,3,0,6" />
-                                            <DataGrid x:Name="StatusMappingsGrid" Height="190" AutoGenerateColumns="False" CanUserAddRows="False"
-                                                      CanUserDeleteRows="False" HeadersVisibility="Column" />
-                                        </StackPanel>
-                                    </Border>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
-                                    CornerRadius="16" Padding="14" Margin="0,0,0,12">
-                                <StackPanel>
-                                    <TextBlock Text="فروش" FontSize="15" FontWeight="Bold" />
-                                    <StackPanel Margin="0,8,0,4">
-                                        <TextBlock Text="منبع جدول/نما" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,0,0,4" />
-                                        <ComboBox x:Name="SalesTableCombo" SelectionChanged="SalesTable_SelectionChanged" />
-                                    </StackPanel>
-                                    <UniformGrid Columns="2" Margin="-3,0,-3,0">
-                                        <StackPanel Margin="3"><TextBlock Text="تاریخ فروش · لازم" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="SalesDateField" /></StackPanel>
-                                        <StackPanel Margin="3"><TextBlock Text="مشتری · لازم" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="SalesCustomerField" /></StackPanel>
-                                        <StackPanel Margin="3"><TextBlock Text="فروشنده · لازم" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="SalesSellerField" /></StackPanel>
-                                        <StackPanel Margin="3"><TextBlock Text="مبلغ فروش · لازم" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="SalesAmountField" SelectionChanged="SalesUnitField_SelectionChanged" /></StackPanel>
-                                        <StackPanel Margin="3"><TextBlock Text="واحد مبلغ/سود" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="SalesAmountUnitCombo" SelectedIndex="0"><ComboBoxItem Content="— واحد را صریح انتخاب کنید —" /><ComboBoxItem Content="تومان (بدون تبدیل)" Tag="1" /><ComboBoxItem Content="ریال (تقسیم بر ۱۰ برای تومان)" Tag="0.1" /></ComboBox></StackPanel>
-                                        <StackPanel Margin="3"><TextBlock Text="سود · لازم" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="SalesProfitField" SelectionChanged="SalesUnitField_SelectionChanged" /></StackPanel>
-                                        <StackPanel Margin="3"><TextBlock Text="وضعیت وصول · اختیاری" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" /><ComboBox x:Name="SalesCollectionStatusField" /></StackPanel>
-                                    </UniformGrid>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Background="{DynamicResource BrandSurfaceBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="11">
-                                <TextBlock Text="تاریخ‌های DATE/DATETIME به تقویم شمسی نمایش داده می‌شوند؛ متن YYYY/MM/DD با سال ۱۳۰۰ تا ۱۴۹۹ شمسی تفسیر می‌شود. ارقام و مبالغ پس از اعتبارسنجی در حافظه بارگذاری می‌شوند. فقط خواندن انجام می‌شود؛ هیچ UPDATE/INSERT/DELETE اجرا نمی‌شود."
-                                           Foreground="{DynamicResource GoldLightBrush}" FontSize="10" TextWrapping="Wrap" />
-                            </Border>
-                        </StackPanel>
-                    </ScrollViewer>
-                </TabItem>
             </TabControl>
 
             <Grid Grid.Row="2" Margin="0,10,0,0">
@@ -260,8 +191,6 @@
                            Foreground="{DynamicResource TextMutedBrush}" FontSize="10" VerticalAlignment="Center" TextWrapping="Wrap" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Content="بستن" MinWidth="90" Click="Cancel_Click" />
-                    <Button x:Name="ImportButton" Content="اعتبارسنجی و بارگذاری داده‌ها" IsEnabled="False"
-                            Style="{StaticResource GoldButtonStyle}" Click="Import_Click" />
                 </StackPanel>
             </Grid>
         </Grid>
@@ -273,7 +202,7 @@
                     <DropShadowEffect BlurRadius="34" ShadowDepth="0" Color="#D8B66C" Opacity="0.28" />
                 </Border.Effect>
                 <StackPanel HorizontalAlignment="Stretch">
-                    <TextBlock Text="همگام‌سازی امن داده‌ها" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" />
+                    <TextBlock Text="در حال بارگذاری داده‌ها" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" />
                     <TextBlock Text="MEELANO · SQL READ-ONLY" FontSize="9" Foreground="{DynamicResource GoldLightBrush}"
                                HorizontalAlignment="Center" Margin="0,4,0,0" FlowDirection="LeftToRight" />
                     <Grid Width="260" Height="235" Margin="0,9,0,0">

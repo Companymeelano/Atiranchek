@@ -1,8 +1,6 @@
-using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Media3D;
@@ -16,18 +14,14 @@ public partial class SqlConnectionWindow : Window
 {
     private readonly SqlServerDataService dataService = new();
     private readonly List<(AxisAngleRotation3D Rotation, DoubleAnimation Animation)> loadingAnimations = [];
-    private IReadOnlyList<SqlTableMetadata> schema = Array.Empty<SqlTableMetadata>();
     private CancellationTokenSource? activeOperation;
     private bool initialized;
-    private bool suppressMappingEvents;
     private bool updatingDatabaseList;
 
     public SqlConnectionWindow()
     {
         InitializeComponent();
         AuthenticationCombo.SelectedIndex = 0;
-        ConfigureMappingGrid(KindMappingsGrid, [CheckKind.دریافتی.ToString(), CheckKind.پرداختی.ToString()]);
-        ConfigureMappingGrid(StatusMappingsGrid, CheckStatuses.All);
         InitializeLoadingScene();
         Closing += Window_Closing;
     }
@@ -128,379 +122,53 @@ public partial class SqlConnectionWindow : Window
 
         updatingDatabaseList = true;
         DatabaseCombo.ItemsSource = databases;
-        DatabaseCombo.SelectedIndex = databases.Count > 0 ? 0 : -1;
+        DatabaseCombo.SelectedIndex = -1;
         DatabaseCombo.IsEnabled = databases.Count > 0;
-        DiscoverButton.IsEnabled = databases.Count > 0;
+        DiscoverButton.IsEnabled = false;
         updatingDatabaseList = false;
         ConnectionStatusText.Text = databases.Count == 0
             ? "اتصال برقرار شد، اما دیتابیس کاربریِ قابل‌دسترسی پیدا نشد."
-            : $"اتصال برقرار شد · {PersianFormatting.Number(databases.Count)} دیتابیس";
+            : $"اتصال برقرار شد · {PersianFormatting.Number(databases.Count)} دیتابیس؛ یک دیتابیس را انتخاب کنید.";
 
         if (databases.Count == 0)
             ShowError("فهرست پایگاه داده خالی است. مجوز اتصال به master و دسترسی دیتابیس را بررسی کنید.");
     }
 
-    private async void DiscoverSchema_Click(object sender, RoutedEventArgs e)
+    private async void DiscoverSchema_Click(object sender, RoutedEventArgs e) => await LoadDatabaseAutomaticallyAsync();
+
+    private async Task LoadDatabaseAutomaticallyAsync()
     {
-        if (DatabaseCombo.SelectedItem is not string database)
-        {
-            ShowError("ابتدا یک پایگاه داده انتخاب کنید.");
-            return;
-        }
-
+        if (DatabaseCombo.SelectedItem is not string database) return;
         SqlServerConnectionSettings settings;
-        try
-        {
-            settings = CreateSettings();
-        }
-        catch (Exception exception) when (exception is ArgumentException)
-        {
-            ShowError(SqlServerErrorMessages.ToPersian(exception));
-            return;
-        }
+        try { settings = CreateSettings(); }
+        catch (ArgumentException exception) { ShowError(SqlServerErrorMessages.ToPersian(exception)); return; }
 
+        SchemaGrid.ItemsSource = null;
+        SchemaCountText.Text = "تحلیل خودکار…";
+        ConnectionStatusText.Text = "در حال تحلیل و بارگذاری…";
         IReadOnlyList<SqlTableMetadata>? discovered = null;
-        var succeeded = await RunWithOverlayAsync(async (progress, cancellationToken) =>
-        {
-            discovered = await dataService.DiscoverSchemaAsync(settings, database, progress, cancellationToken);
-        });
-        if (!succeeded || discovered is null)
-            return;
-
-        schema = discovered;
-        SchemaGrid.ItemsSource = schema;
-        SchemaCountText.Text = $"{PersianFormatting.Number(schema.Count)} شیء";
-        PopulateTablePickers();
-        MappingTab.IsEnabled = schema.Count > 0;
-        ImportButton.IsEnabled = schema.Count > 0;
-
-        if (schema.Count == 0)
-        {
-            ShowError("ساختار قابل‌دسترسی پیدا نشد. مجوزهای metadata و SELECT روی جدول‌ها یا Viewهای گزارش را بررسی کنید.");
-            return;
-        }
-
-        WizardTabs.SelectedIndex = 1;
-    }
-
-    private void CheckTable_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (suppressMappingEvents)
-            return;
-        SetColumnOptions(
-            CheckTableCombo.SelectedItem as SqlTableMetadata,
-            CheckNumberField, CheckKindField, CheckPartyField, CheckAmountField,
-            CheckDueDateField, CheckStatusField, CheckBankField, CheckRiskField);
-        CheckAmountUnitCombo.SelectedIndex = 0;
-        ClearValueMapping(KindMappingsGrid);
-        ClearValueMapping(StatusMappingsGrid);
-    }
-
-    private void SalesTable_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (suppressMappingEvents)
-            return;
-        SetColumnOptions(
-            SalesTableCombo.SelectedItem as SqlTableMetadata,
-            SalesDateField, SalesCustomerField, SalesSellerField, SalesAmountField,
-            SalesProfitField, SalesCollectionStatusField);
-        SalesAmountUnitCombo.SelectedIndex = 0;
-    }
-
-    private void CheckAmountField_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (!suppressMappingEvents)
-            CheckAmountUnitCombo.SelectedIndex = 0;
-    }
-
-    private void SalesUnitField_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (!suppressMappingEvents)
-            SalesAmountUnitCombo.SelectedIndex = 0;
-    }
-
-    private async void CheckKindField_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (!suppressMappingEvents)
-            await LoadValueMappingsAsync(CheckKindField, CheckTableCombo, KindMappingsGrid, isStatus: false);
-    }
-
-    private async void CheckStatusField_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (!suppressMappingEvents)
-            await LoadValueMappingsAsync(CheckStatusField, CheckTableCombo, StatusMappingsGrid, isStatus: true);
-    }
-
-    private async Task LoadValueMappingsAsync(
-        ComboBox fieldPicker,
-        ComboBox tablePicker,
-        DataGrid grid,
-        bool isStatus)
-    {
-        if (tablePicker.SelectedItem is not SqlTableMetadata table
-            || GetOptionalColumn(fieldPicker) is not { } column)
-        {
-            ClearValueMapping(grid);
-            return;
-        }
-
-        ClearValueMapping(grid);
-        SqlServerConnectionSettings settings;
-        try
-        {
-            settings = CreateSettings();
-        }
-        catch (Exception exception) when (exception is ArgumentException)
-        {
-            ShowError(SqlServerErrorMessages.ToPersian(exception));
-            return;
-        }
-
-        IReadOnlyList<SqlValueOption>? values = null;
-        var succeeded = await RunWithOverlayAsync(async (progress, cancellationToken) =>
-        {
-            values = await dataService.GetDistinctValuesAsync(
-                settings,
-                GetSelectedDatabase(),
-                table,
-                column,
-                progress,
-                cancellationToken);
-        });
-        if (!succeeded || values is null)
-            return;
-
-        var source = new ObservableCollection<SqlValueMappingChoice>(values.Select(value => new SqlValueMappingChoice
-        {
-            DisplayValue = value.DisplayValue,
-            LookupKey = value.LookupKey,
-            TargetValue = value.IsNull ? null : SuggestMapping(value.RawValue, isStatus)
-        }));
-        grid.ItemsSource = source;
-    }
-
-    private static string? SuggestMapping(string rawValue, bool isStatus)
-    {
-        var normalized = PersianText.NormalizeForSearch(rawValue);
-        if (!isStatus)
-        {
-            if (normalized is "پرداختی" or "چک پرداختی" or "outgoing" or "payable" or "out")
-                return CheckKind.پرداختی.ToString();
-            if (normalized is "دریافتی" or "چک دریافتی" or "incoming" or "receivable" or "in")
-                return CheckKind.دریافتی.ToString();
-            return null;
-        }
-
-        // Suggestions are deliberately conservative and always remain editable by the user.
-        if (normalized.Contains("در انتظار", StringComparison.Ordinal)
-            || normalized.Contains("پرداخت نشده", StringComparison.Ordinal)
-            || normalized.Contains("وصول نشده", StringComparison.Ordinal)
-            || normalized is "pending" or "open")
-        {
-            return CheckStatuses.Pending;
-        }
-        if (normalized.Contains("تعلیق", StringComparison.Ordinal)
-            || normalized.Contains("معلق", StringComparison.Ordinal)
-            || normalized is "suspended" or "suspend" or "hold")
-        {
-            return CheckStatuses.Suspended;
-        }
-        if (normalized.Contains("برگشت", StringComparison.Ordinal)
-            || normalized.Contains("عودت", StringComparison.Ordinal)
-            || normalized is "returned" or "return" or "bounced")
-        {
-            return CheckStatuses.Returned;
-        }
-        if (normalized is "وصول شده" or "وصول شده است" or "collected" or "received" or "cleared")
-            return CheckStatuses.Collected;
-        if (normalized is "پرداخت شده" or "پرداخت شده است" or "paid")
-            return CheckStatuses.Paid;
-        return null;
-    }
-
-    private async void Import_Click(object sender, RoutedEventArgs e)
-    {
-        SqlImportMapping mapping;
-        SqlServerConnectionSettings settings;
-        string database;
-        try
-        {
-            settings = CreateSettings();
-            database = GetSelectedDatabase();
-            mapping = BuildImportMapping();
-        }
-        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
-        {
-            ShowError(SqlServerErrorMessages.ToPersian(exception));
-            return;
-        }
-
         SqlServerRepository? repository = null;
-        var succeeded = await RunWithOverlayAsync(async (progress, cancellationToken) =>
+        var succeeded = await RunWithOverlayAsync(async (progress, token) =>
         {
-            repository = await dataService.ImportAsync(settings, database, mapping, progress, cancellationToken);
+            discovered = await dataService.DiscoverSchemaAsync(settings, database, progress, token);
+            var plan = SqlAutomaticMapping.Analyze(discovered);
+            progress.Report(new SqlServerProgress(5, "قرارداد گزارش شناسایی شد؛ خواندن و کنترل داده‌ها…"));
+            repository = await dataService.ImportAsync(settings, database, SqlAutomaticMapping.CreateMapping(plan), progress, token);
         });
+        if (discovered is not null)
+        {
+            SchemaGrid.ItemsSource = discovered;
+            SchemaCountText.Text = $"{PersianFormatting.Number(discovered.Count)} شیء";
+        }
         if (!succeeded || repository is null)
+        {
+            ConnectionStatusText.Text = "بارگذاری انجام نشد؛ قرارداد گزارش و دسترسی را بررسی کنید.";
             return;
-
+        }
         ImportedRepository = repository;
         PasswordInput.Clear();
         DialogResult = true;
         Close();
-    }
-
-    private SqlImportMapping BuildImportMapping()
-    {
-        var checkTable = CheckTableCombo.SelectedItem as SqlTableMetadata
-            ?? throw new InvalidOperationException("منبع جدول چک انتخاب نشده است.");
-        var salesTable = SalesTableCombo.SelectedItem as SqlTableMetadata
-            ?? throw new InvalidOperationException("منبع جدول فروش انتخاب نشده است.");
-
-        var kindValues = ReadMappingGrid(KindMappingsGrid);
-        var statusValues = ReadMappingGrid(StatusMappingsGrid);
-        if (kindValues.Count == 0 || statusValues.Count == 0)
-            throw new InvalidOperationException("ابتدا ستون نوع و وضعیت چک را انتخاب و تمام مقدارهای متمایز را نگاشت کنید.");
-
-        var checkMapping = new SqlCheckImportMapping(
-            checkTable,
-            GetSelectedColumn(CheckNumberField),
-            GetSelectedColumn(CheckKindField),
-            GetSelectedColumn(CheckPartyField),
-            GetSelectedColumn(CheckAmountField),
-            GetSelectedColumn(CheckDueDateField),
-            GetSelectedColumn(CheckStatusField),
-            GetOptionalColumn(CheckBankField),
-            GetOptionalColumn(CheckRiskField),
-            kindValues.ToDictionary(item => item.LookupKey, item => Enum.Parse<CheckKind>(item.TargetValue!, ignoreCase: false), StringComparer.Ordinal),
-            statusValues.ToDictionary(item => item.LookupKey, item => item.TargetValue!, StringComparer.Ordinal),
-            GetMultiplier(CheckAmountUnitCombo));
-
-        var salesMapping = new SqlSalesImportMapping(
-            salesTable,
-            GetSelectedColumn(SalesDateField),
-            GetSelectedColumn(SalesCustomerField),
-            GetSelectedColumn(SalesSellerField),
-            GetSelectedColumn(SalesAmountField),
-            GetSelectedColumn(SalesProfitField),
-            GetOptionalColumn(SalesCollectionStatusField),
-            GetMultiplier(SalesAmountUnitCombo));
-        return new SqlImportMapping(checkMapping, salesMapping);
-    }
-
-    private static List<SqlValueMappingChoice> ReadMappingGrid(DataGrid grid)
-    {
-        grid.CommitEdit(DataGridEditingUnit.Cell, exitEditingMode: true);
-        grid.CommitEdit(DataGridEditingUnit.Row, exitEditingMode: true);
-        if (grid.ItemsSource is not IEnumerable<SqlValueMappingChoice> values)
-            return [];
-
-        var list = values.ToList();
-        var invalid = list.FirstOrDefault(item => string.IsNullOrWhiteSpace(item.TargetValue));
-        if (invalid is not null)
-            throw new InvalidOperationException($"برای مقدار منبع «{invalid.DisplayValue}» یک مقصد نگاشت انتخاب کنید.");
-        return list;
-    }
-
-    private static void ConfigureMappingGrid(DataGrid grid, IReadOnlyList<string> targets)
-    {
-        grid.AutoGenerateColumns = false;
-        grid.IsReadOnly = false;
-        grid.CanUserAddRows = false;
-        grid.CanUserDeleteRows = false;
-        grid.CanUserReorderColumns = false;
-        grid.CanUserResizeRows = false;
-        grid.SelectionUnit = DataGridSelectionUnit.FullRow;
-        grid.SelectionMode = DataGridSelectionMode.Single;
-        grid.HeadersVisibility = DataGridHeadersVisibility.Column;
-        grid.RowHeight = 34;
-        grid.Columns.Add(new DataGridTextColumn
-        {
-            Header = "مقدار کشف‌شده در SQL",
-            Binding = new Binding(nameof(SqlValueMappingChoice.DisplayValue)),
-            IsReadOnly = true,
-            Width = new DataGridLength(1, DataGridLengthUnitType.Star)
-        });
-        grid.Columns.Add(new DataGridComboBoxColumn
-        {
-            Header = "معادل در برنامه",
-            ItemsSource = targets,
-            SelectedItemBinding = new Binding(nameof(SqlValueMappingChoice.TargetValue))
-            {
-                Mode = BindingMode.TwoWay,
-                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
-            },
-            Width = new DataGridLength(1, DataGridLengthUnitType.Star)
-        });
-    }
-
-    private static void ClearValueMapping(DataGrid grid) => grid.ItemsSource = null;
-
-    private void PopulateTablePickers()
-    {
-        suppressMappingEvents = true;
-        CheckTableCombo.ItemsSource = schema;
-        CheckTableCombo.DisplayMemberPath = nameof(SqlTableMetadata.DisplayName);
-        CheckTableCombo.SelectedIndex = -1;
-        SalesTableCombo.ItemsSource = schema;
-        SalesTableCombo.DisplayMemberPath = nameof(SqlTableMetadata.DisplayName);
-        SalesTableCombo.SelectedIndex = -1;
-        ResetColumnPickers();
-        CheckAmountUnitCombo.SelectedIndex = 0;
-        SalesAmountUnitCombo.SelectedIndex = 0;
-        ClearValueMapping(KindMappingsGrid);
-        ClearValueMapping(StatusMappingsGrid);
-        suppressMappingEvents = false;
-    }
-
-    private void SetColumnOptions(SqlTableMetadata? table, params ComboBox[] pickers)
-    {
-        suppressMappingEvents = true;
-        foreach (var picker in pickers)
-        {
-            var choices = new List<ColumnChoice> { new(null, "— انتخاب ستون —") };
-            if (picker == CheckBankField || picker == CheckRiskField || picker == SalesCollectionStatusField)
-                choices[0] = new ColumnChoice(null, "— بدون نگاشت —");
-            if (table is not null)
-                choices.AddRange(table.Columns.Select(column => new ColumnChoice(column.Name, $"{column.Name}  ·  {column.DataType}")));
-            picker.ItemsSource = choices;
-            picker.DisplayMemberPath = nameof(ColumnChoice.Display);
-            picker.SelectedIndex = 0;
-        }
-        suppressMappingEvents = false;
-    }
-
-    private void ResetColumnPickers()
-    {
-        SetColumnOptions(null,
-            CheckNumberField, CheckKindField, CheckPartyField, CheckAmountField,
-            CheckDueDateField, CheckStatusField, CheckBankField, CheckRiskField,
-            SalesDateField, SalesCustomerField, SalesSellerField, SalesAmountField,
-            SalesProfitField, SalesCollectionStatusField);
-    }
-
-    private static string GetSelectedColumn(ComboBox picker)
-    {
-        var column = (picker.SelectedItem as ColumnChoice)?.Name;
-        if (!string.IsNullOrWhiteSpace(column))
-            return column;
-        throw new InvalidOperationException("یکی از فیلدهای ضروری نگاشت انتخاب نشده است.");
-    }
-
-    private static string? GetOptionalColumn(ComboBox picker)
-    {
-        var column = (picker.SelectedItem as ColumnChoice)?.Name;
-        return string.IsNullOrWhiteSpace(column) ? null : column;
-    }
-
-    private static decimal GetMultiplier(ComboBox picker)
-    {
-        if (picker.SelectedItem is ComboBoxItem item
-            && decimal.TryParse(item.Tag?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var multiplier)
-            && multiplier > 0)
-        {
-            return multiplier;
-        }
-        throw new InvalidOperationException("واحد منبع را صریحاً برای چک و مبلغ/سود فروش انتخاب کنید؛ تبدیل پیش‌فرض انجام نمی‌شود.");
     }
 
     private SqlServerConnectionSettings CreateSettings()
@@ -517,9 +185,6 @@ public partial class SqlConnectionWindow : Window
             UserNameBox.Text,
             PasswordInput.Password);
     }
-
-    private string GetSelectedDatabase() => DatabaseCombo.SelectedItem as string
-        ?? throw new InvalidOperationException("پایگاه داده انتخاب نشده است.");
 
     private void Authentication_Changed(object sender, SelectionChangedEventArgs e)
     {
@@ -559,28 +224,19 @@ public partial class SqlConnectionWindow : Window
         updatingDatabaseList = false;
     }
 
-    private void Database_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void Database_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (initialized && !updatingDatabaseList)
-            ClearDiscoveredSchema();
+        if (!initialized || updatingDatabaseList) return;
+        ClearDiscoveredSchema();
+        DiscoverButton.IsEnabled = DatabaseCombo.SelectedItem is string;
+        if (DatabaseCombo.SelectedItem is string)
+            await LoadDatabaseAutomaticallyAsync();
     }
 
     private void ClearDiscoveredSchema()
     {
-        schema = Array.Empty<SqlTableMetadata>();
         SchemaGrid.ItemsSource = null;
         SchemaCountText.Text = string.Empty;
-        MappingTab.IsEnabled = false;
-        ImportButton.IsEnabled = false;
-        suppressMappingEvents = true;
-        CheckTableCombo.ItemsSource = null;
-        SalesTableCombo.ItemsSource = null;
-        ResetColumnPickers();
-        CheckAmountUnitCombo.SelectedIndex = 0;
-        SalesAmountUnitCombo.SelectedIndex = 0;
-        ClearValueMapping(KindMappingsGrid);
-        ClearValueMapping(StatusMappingsGrid);
-        suppressMappingEvents = false;
     }
 
     private async Task<bool> RunWithOverlayAsync(
@@ -811,12 +467,4 @@ public partial class SqlConnectionWindow : Window
         return new GeometryModel3D(mesh, material) { BackMaterial = material };
     }
 
-    private sealed record ColumnChoice(string? Name, string Display);
-
-    private sealed class SqlValueMappingChoice
-    {
-        public string DisplayValue { get; init; } = string.Empty;
-        public string LookupKey { get; init; } = string.Empty;
-        public string? TargetValue { get; set; }
-    }
 }

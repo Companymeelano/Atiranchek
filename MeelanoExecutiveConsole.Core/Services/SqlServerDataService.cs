@@ -156,7 +156,8 @@ public sealed record SqlCheckImportMapping(
     string? RiskColumn,
     IReadOnlyDictionary<string, CheckKind> KindValues,
     IReadOnlyDictionary<string, string> StatusValues,
-    decimal AmountMultiplierToToman);
+    decimal AmountMultiplierToToman,
+    bool AutomaticValues = false);
 
 public sealed record SqlSalesImportMapping(
     SqlTableMetadata Table,
@@ -404,7 +405,7 @@ public sealed class SqlServerDataService
         await using var command = new SqlCommand(sql, connection) { CommandTimeout = CommandTimeoutSeconds };
         var records = new List<CheckItem>((int)rowCount);
         var identifiers = new HashSet<string>(StringComparer.Ordinal);
-        await using var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false);
+        await using var reader = await command.ExecuteReaderAsync(CommandBehavior.Default, cancellationToken).ConfigureAwait(false);
         long index = 0;
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -415,16 +416,22 @@ public sealed class SqlServerDataService
 
             var rawKind = ReadValue(reader, "__kind");
             var kindKey = SqlValueOption.KeyFor(rawKind);
-            if (!mapping.KindValues.TryGetValue(kindKey, out var kind))
-                throw new InvalidOperationException($"نوع چک در ردیف {index.ToString(CultureInfo.InvariantCulture)} نگاشت نشده است.");
+            if (!mapping.KindValues.TryGetValue(kindKey, out var kind)
+                && !(mapping.AutomaticValues && rawKind is string kindText && SqlAutomaticMapping.TryKind(kindText, out kind)))
+                throw new InvalidOperationException($"نوع چک در ردیف {index.ToString(CultureInfo.InvariantCulture)} ناشناخته یا NULL است؛ قرارداد نمای گزارش را بررسی کنید.");
 
             var rawStatus = ReadValue(reader, "__status");
             var statusKey = SqlValueOption.KeyFor(rawStatus);
-            if (!mapping.StatusValues.TryGetValue(statusKey, out var status)
-                || !CheckStatuses.All.Contains(status, StringComparer.Ordinal))
+            if (!mapping.StatusValues.TryGetValue(statusKey, out var status) && mapping.AutomaticValues && rawStatus is string statusText)
+                status = SqlAutomaticMapping.Status(statusText);
+            if (status is null || !CheckStatuses.All.Contains(status, StringComparer.Ordinal))
             {
                 throw new InvalidOperationException($"وضعیت چک در ردیف {index.ToString(CultureInfo.InvariantCulture)} نگاشت نشده است.");
             }
+
+            if ((kind == CheckKind.دریافتی && status == CheckStatuses.Paid)
+                || (kind == CheckKind.پرداختی && status == CheckStatuses.Collected))
+                throw new InvalidOperationException($"نوع و وضعیت چک در ردیف {index.ToString(CultureInfo.InvariantCulture)} ناسازگارند؛ داده بارگذاری نشد.");
 
             var amount = ReadDecimal(reader, "__amount", index, "مبلغ چک") * mapping.AmountMultiplierToToman;
             if (amount <= 0)
@@ -483,7 +490,7 @@ public sealed class SqlServerDataService
         var sql = BuildSelect(mapping.Table, fields);
         await using var command = new SqlCommand(sql, connection) { CommandTimeout = CommandTimeoutSeconds };
         var records = new List<SaleItem>((int)rowCount);
-        await using var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false);
+        await using var reader = await command.ExecuteReaderAsync(CommandBehavior.Default, cancellationToken).ConfigureAwait(false);
         long index = 0;
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -543,8 +550,6 @@ public sealed class SqlServerDataService
         if (!string.IsNullOrWhiteSpace(check.RiskColumn)) ValidateColumn(check.Table, check.RiskColumn);
         if (check.AmountMultiplierToToman <= 0)
             throw new InvalidOperationException("ضریب تبدیل مبلغ چک به تومان باید مثبت باشد.");
-        if (check.KindValues.Count == 0 || check.StatusValues.Count == 0)
-            throw new InvalidOperationException("مقادیر نوع و وضعیت چک باید نگاشت شوند.");
 
         foreach (var pair in check.KindValues)
         {

@@ -23,6 +23,8 @@ internal static class Program
             ("SQL discovery stays bounded and validates TDS responses", SqlDiscovery),
             ("SQL discovery handles fragmented prelogin responses", SqlDiscoveryNetwork),
             ("SQL test mode encrypts without requiring certificate validation", SqlTestConnectionSettings),
+            ("Automatic SQL reporting contract detects units and rejects ambiguity", SqlAutomaticContract),
+            ("Automatic SQL value mapping rejects unknown codes", SqlAutomaticValues),
             ("SQL source-value keys preserve exact values and distinguish NULL", SqlValueKeys),
             ("Live SQL snapshots cannot mutate check status", LiveSqlIsReadOnly),
             ("Persian search normalizes keyboard and digit variants", PersianSearchNormalization),
@@ -243,6 +245,61 @@ internal static class Program
             Equal(Microsoft.Data.SqlClient.ApplicationIntent.ReadOnly, builder.ApplicationIntent, "read-only routing retained");
             False(builder.PersistSecurityInfo, "credential persistence disabled");
         }
+    }
+
+    private static (SqlTableMetadata Checks, SqlTableMetadata Sales) AutomaticViews()
+    {
+        SqlColumnMetadata C(string name, string type) => new(name, type, false);
+        return (new SqlTableMetadata("reports", "MEELANO_Checks", "VIEW", new[]
+        {
+            C("CheckNumber", "nvarchar"), C("CheckKind", "nvarchar"), C("PartyName", "nvarchar"),
+            C("AmountRial", "decimal"), C("DueDate", "date"), C("CheckStatus", "nvarchar"), C("RiskScore", "int")
+        }), new SqlTableMetadata("reports", "MEELANO_Sales", "VIEW", new[]
+        {
+            C("SaleDate", "datetime2"), C("CustomerName", "nvarchar"), C("SellerName", "nvarchar"),
+            C("AmountToman", "decimal"), C("ProfitToman", "decimal")
+        }));
+    }
+
+    private static void SqlAutomaticContract()
+    {
+        var (checks, sales) = AutomaticViews();
+        var plan = SqlAutomaticMapping.Analyze(new[] { checks, sales });
+        Equal(0.1m, plan.CheckMultiplier, "rial converted explicitly");
+        Equal(1m, plan.SaleMultiplier, "sales toman unchanged");
+        Equal("RiskScore", plan.Risk, "optional risk recognized");
+        Equal<string?>(null, plan.Bank, "missing optional bank omitted");
+        var mapping = SqlAutomaticMapping.CreateMapping(plan);
+        True(mapping.Checks.AutomaticValues, "value resolution per row");
+        Throws<InvalidOperationException>(() => SqlAutomaticMapping.Analyze(new[] { checks }), "missing sales view rejected");
+        var duplicate = new SqlTableMetadata("other", checks.Name, "VIEW", checks.Columns);
+        Throws<InvalidOperationException>(() => SqlAutomaticMapping.Analyze(new[] { checks, sales, duplicate }), "duplicate view names rejected");
+        var table = new SqlTableMetadata(checks.Schema, checks.Name, "BASE TABLE", checks.Columns);
+        Throws<InvalidOperationException>(() => SqlAutomaticMapping.Analyze(new[] { table, sales }), "table does not silently impersonate report view");
+        var bothUnits = new SqlTableMetadata(checks.Schema, checks.Name, checks.ObjectType,
+            checks.Columns.Append(new SqlColumnMetadata("AmountToman", "decimal", false)).ToArray());
+        Throws<InvalidOperationException>(() => SqlAutomaticMapping.Analyze(new[] { bothUnits, sales }), "ambiguous units rejected");
+        var mixedProfit = new SqlTableMetadata(sales.Schema, sales.Name, sales.ObjectType,
+            sales.Columns.Select(c => c.Name == "ProfitToman" ? new SqlColumnMetadata("ProfitRial", "decimal", false) : c).ToArray());
+        Throws<InvalidOperationException>(() => SqlAutomaticMapping.Analyze(new[] { checks, mixedProfit }), "mixed sales units rejected");
+        var textDate = new SqlTableMetadata(checks.Schema, checks.Name, checks.ObjectType,
+            checks.Columns.Select(c => c.Name == "DueDate" ? new SqlColumnMetadata("DueDate", "nvarchar", false) : c).ToArray());
+        Throws<InvalidOperationException>(() => SqlAutomaticMapping.Analyze(new[] { textDate, sales }), "ambiguous text dates rejected");
+        var floatMoney = new SqlTableMetadata(checks.Schema, checks.Name, checks.ObjectType,
+            checks.Columns.Select(c => c.Name == "AmountRial" ? new SqlColumnMetadata("AmountRial", "float", false) : c).ToArray());
+        Throws<InvalidOperationException>(() => SqlAutomaticMapping.Analyze(new[] { floatMoney, sales }), "floating point money rejected");
+    }
+
+    private static void SqlAutomaticValues()
+    {
+        True(SqlAutomaticMapping.TryKind("چك دريافتي", out var kind), "Persian letter variants normalize");
+        Equal(CheckKind.دریافتی, kind, "incoming type");
+        False(SqlAutomaticMapping.TryKind("1", out _), "numeric kind not guessed");
+        False(SqlAutomaticMapping.TryKind("", out _), "empty kind not guessed");
+        Equal(CheckStatuses.Collected, SqlAutomaticMapping.Status("وصول‌شده"), "canonical status");
+        Equal(CheckStatuses.Pending, SqlAutomaticMapping.Status("Pending"), "English status");
+        Equal<string?>(null, SqlAutomaticMapping.Status("not pending"), "substring is not a status");
+        Equal<string?>(null, SqlAutomaticMapping.Status("1"), "numeric status not guessed");
     }
 
     private static void SqlValueKeys()
