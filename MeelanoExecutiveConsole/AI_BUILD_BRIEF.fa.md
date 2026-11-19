@@ -5,7 +5,7 @@
 
 ## پشته و ساختار
 - .NET 8، WPF و C#؛ UI در `MeelanoExecutiveConsole`، مدل/محاسبه/سرویس SQL در `MeelanoExecutiveConsole.Core` و Specs خوداجرا در `MeelanoExecutiveConsole.Specs`.
-- رابط تیرهٔ گرافیتی/سبزآبی با جزئیات طلایی، فارسی RTL، تاریخ شمسی، مبلغ تومان، پنجرهٔ قابل تغییر اندازه و DPI-aware.
+- رابط فارسی RTL با تم تیرهٔ گرافیتی/سبزآبی و تم روشن لوکسِ عاجی/طلایی؛ انتخاب تم در داشبورد و ویزارد SQL یکپارچه و در `%LOCALAPPDATA%\MEELANO\theme.txt` ماندگار است. تاریخ شمسی، مبلغ تومان، پنجرهٔ قابل تغییر اندازه و DPI-aware.
 - SQL driver: `Microsoft.Data.SqlClient`; TCP مستقیم به IP/DNS و پورت قابل‌تنظیم، پیش‌فرض 5050. TLS و اعتبارسنجی گواهی اجباری.
 - نصب‌کنندهٔ per-user ویندوز x64 با Inno Setup 6؛ build self-contained single-file. WPF فقط در Windows اجرا می‌شود.
 - `Version` فایل `.csproj` منبع مرجع version/setup/release است.

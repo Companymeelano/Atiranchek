@@ -21,6 +21,12 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
     }
 
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        ThemeManager.Initialize();
+        base.OnStartup(e);
+    }
+
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         WriteError(e.Exception);

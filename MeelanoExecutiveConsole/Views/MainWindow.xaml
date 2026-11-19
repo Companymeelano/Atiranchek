@@ -12,7 +12,7 @@
         ResizeMode="CanResize"
         WindowState="Maximized"
         FlowDirection="RightToLeft"
-        Background="{StaticResource CanvasBrush}"
+        Background="{DynamicResource CanvasBrush}"
         FontFamily="Segoe UI"
         KeyDown="Window_KeyDown"
         Loaded="Window_Loaded">
@@ -25,17 +25,17 @@
     </shell:WindowChrome.WindowChrome>
 
     <Grid>
-        <Border Background="{StaticResource WindowBackgroundBrush}" />
+        <Border Background="{DynamicResource WindowBackgroundBrush}" />
         <Ellipse Width="560" Height="560" HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                 Margin="-250,0,0,-300" Fill="#173D3830" IsHitTestVisible="False" />
+                 Margin="-250,0,0,-300" Fill="{DynamicResource GlowBrush}" IsHitTestVisible="False" />
 
         <DockPanel Margin="12" LastChildFill="True">
             <Border DockPanel.Dock="Right"
                     Width="242"
                     Margin="0,0,14,0"
                     Padding="16"
-                    Background="{StaticResource SidebarBrush}"
-                    BorderBrush="{StaticResource StrokeBrush}"
+                    Background="{DynamicResource SidebarBrush}"
+                    BorderBrush="{DynamicResource StrokeBrush}"
                     BorderThickness="1"
                     CornerRadius="22">
                 <Grid>
@@ -46,19 +46,19 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4,8,4,30" FlowDirection="RightToLeft">
-                        <Border Width="48" Height="48" CornerRadius="15" Background="#20352E" BorderBrush="#536A4F" BorderThickness="1">
-                            <TextBlock Text="M" FontSize="26" FontWeight="Bold" Foreground="{StaticResource GoldLightBrush}"
+                        <Border Width="48" Height="48" CornerRadius="15" Background="{DynamicResource BrandSurfaceBrush}" BorderBrush="{DynamicResource BrandBorderBrush}" BorderThickness="1">
+                            <TextBlock Text="M" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource GoldLightBrush}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" FlowDirection="LeftToRight" />
                         </Border>
                         <StackPanel VerticalAlignment="Center" Margin="12,0,0,0">
                             <TextBlock Text="MEELANO" FontSize="15" FontWeight="Bold" FlowDirection="LeftToRight" />
-                            <TextBlock Text="EXECUTIVE CONSOLE" FontSize="8" Foreground="{StaticResource TextMutedBrush}"
+                            <TextBlock Text="EXECUTIVE CONSOLE" FontSize="8" Foreground="{DynamicResource TextMutedBrush}"
                                        Margin="0,3,0,0" FlowDirection="LeftToRight" />
                         </StackPanel>
                     </StackPanel>
 
                     <StackPanel Grid.Row="1">
-                        <TextBlock Text="فضای کاری" Foreground="{StaticResource TextMutedBrush}" FontSize="11"
+                        <TextBlock Text="فضای کاری" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
                                    FontWeight="Bold" Margin="12,0,12,10" />
                         <RadioButton x:Name="NavDashboard" GroupName="MainNavigation" Tag="0" IsChecked="True"
                                      Style="{StaticResource NavigationRadioStyle}" Checked="Navigation_Checked">
@@ -67,7 +67,7 @@
                                     <ColumnDefinition Width="34" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="◈" Foreground="{StaticResource GoldBrush}" FontSize="17" VerticalAlignment="Center" />
+                                <TextBlock Text="◈" Foreground="{DynamicResource GoldBrush}" FontSize="17" VerticalAlignment="Center" />
                                 <TextBlock Grid.Column="1" Text="نمای کلی" VerticalAlignment="Center" />
                             </Grid>
                         </RadioButton>
@@ -78,7 +78,7 @@
                                     <ColumnDefinition Width="34" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="▤" Foreground="{StaticResource GoldBrush}" FontSize="17" VerticalAlignment="Center" />
+                                <TextBlock Text="▤" Foreground="{DynamicResource GoldBrush}" FontSize="17" VerticalAlignment="Center" />
                                 <TextBlock Grid.Column="1" Text="مرکز چک‌ها" VerticalAlignment="Center" />
                             </Grid>
                         </RadioButton>
@@ -89,7 +89,7 @@
                                     <ColumnDefinition Width="34" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="↗" Foreground="{StaticResource GoldBrush}" FontSize="18" VerticalAlignment="Center" />
+                                <TextBlock Text="↗" Foreground="{DynamicResource GoldBrush}" FontSize="18" VerticalAlignment="Center" />
                                 <TextBlock Grid.Column="1" Text="فروش و عملکرد" VerticalAlignment="Center" />
                             </Grid>
                         </RadioButton>
@@ -100,22 +100,22 @@
                                     <ColumnDefinition Width="34" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="◎" Foreground="{StaticResource GoldBrush}" FontSize="18" VerticalAlignment="Center" />
+                                <TextBlock Text="◎" Foreground="{DynamicResource GoldBrush}" FontSize="18" VerticalAlignment="Center" />
                                 <TextBlock Grid.Column="1" Text="رادار نقدینگی" VerticalAlignment="Center" />
                             </Grid>
                         </RadioButton>
                     </StackPanel>
 
-                    <Border Grid.Row="2" Background="#111F20" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1"
+                    <Border Grid.Row="2" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
                             CornerRadius="16" Padding="13" Margin="2,16,2,3">
                         <StackPanel>
                             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
-                                <Ellipse Width="8" Height="8" Fill="{StaticResource GreenBrush}" VerticalAlignment="Center" Margin="0,0,0,0" />
-                                <TextBlock Text="{Binding DataModeLabel}" FontWeight="Bold" Foreground="{StaticResource GoldLightBrush}" />
+                                <Ellipse Width="8" Height="8" Fill="{DynamicResource GreenBrush}" VerticalAlignment="Center" Margin="0,0,0,0" />
+                                <TextBlock Text="{Binding DataModeLabel}" FontWeight="Bold" Foreground="{DynamicResource GoldLightBrush}" />
                             </StackPanel>
                             <TextBlock Text="{Binding DataSourceDescription}"
-                                       Foreground="{StaticResource TextMutedBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" />
-                            <TextBlock Text="نسخهٔ ۱.۱.۰ · مستقیم/نمایشی" Foreground="{StaticResource GoldBrush}"
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" />
+                            <TextBlock Text="نسخهٔ ۱.۱.۰ · مستقیم/نمایشی" Foreground="{DynamicResource GoldLightBrush}"
                                        FontSize="10" Margin="0,8,0,0" />
                         </StackPanel>
                     </Border>
@@ -128,31 +128,35 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <Border x:Name="TitleBar" Grid.Row="0" Background="#0D191B" BorderBrush="{StaticResource StrokeBrush}"
+                <Border x:Name="TitleBar" Grid.Row="0" Background="{DynamicResource HeaderSurfaceBrush}" BorderBrush="{DynamicResource StrokeBrush}"
                         BorderThickness="1" CornerRadius="16" Margin="0,0,0,12" MouseLeftButtonDown="TitleBar_MouseDown">
                     <Grid Margin="12,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" FlowDirection="RightToLeft">
-                            <Border Background="#1C2E2A" BorderBrush="#425945" BorderThickness="1" CornerRadius="8" Padding="10,5">
-                                <TextBlock Text="{Binding DataModeLabel}" Foreground="{StaticResource GoldLightBrush}" FontSize="11" FontWeight="SemiBold" />
+                            <Border Background="{DynamicResource BadgeSurfaceBrush}" BorderBrush="{DynamicResource BrandBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10,5">
+                                <TextBlock Text="{Binding DataModeLabel}" Foreground="{DynamicResource GoldLightBrush}" FontSize="11" FontWeight="SemiBold" />
                             </Border>
-                            <Border Width="1" Height="24" Background="{StaticResource StrokeBrush}" Margin="14,0" />
+                            <Border Width="1" Height="24" Background="{DynamicResource StrokeBrush}" Margin="14,0" />
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="کنسول مدیریتی میلانو" FontWeight="Bold" FontSize="13" />
-                                <TextBlock Text="{Binding TodayDateText}" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,2,0,0" />
+                                <TextBlock Text="{Binding TodayDateText}" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,2,0,0" />
                             </StackPanel>
                         </StackPanel>
                         <Button Grid.Column="1" Content="اتصال SQL" Style="{StaticResource GoldButtonStyle}" VerticalAlignment="Center"
-                                ToolTip="اتصال رمزگذاری‌شده، انتخاب دیتابیس و نگاشت داده‌های فقط‌خواندنی" Click="ConnectSql_Click" />
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" FlowDirection="LeftToRight">
+                                ToolTip="اتصال مستقیم، انتخاب دیتابیس و نگاشت داده‌های فقط‌خواندنی" Click="ConnectSql_Click" />
+                        <Button x:Name="ThemeToggleButton" Grid.Column="2" Content="☼ تم روشن" MinWidth="112"
+                                Style="{StaticResource BaseButtonStyle}" VerticalAlignment="Center" ToolTip="تغییر به تم روشن"
+                                Click="ThemeToggle_Click" />
+                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" FlowDirection="LeftToRight">
                             <Button Style="{StaticResource WindowButtonStyle}" Content="⛶" ToolTip="تغییر حالت تمام‌صفحه (F11)" Click="ToggleFullScreen_Click" />
                             <Button Style="{StaticResource WindowButtonStyle}" Content="—" ToolTip="کوچک‌کردن پنجره" Click="Minimize_Click" />
                             <Button Style="{StaticResource WindowButtonStyle}" Content="□" ToolTip="بزرگ‌نمایی یا بازگردانی" Click="Maximize_Click" />
-                            <Button Style="{StaticResource WindowButtonStyle}" Content="×" Foreground="{StaticResource RedBrush}"
+                            <Button Style="{StaticResource WindowButtonStyle}" Content="×" Foreground="{DynamicResource RedBrush}"
                                     ToolTip="بستن برنامه" Click="Close_Click" />
                         </StackPanel>
                     </Grid>
@@ -166,198 +170,207 @@
                     </TabControl.Template>
 
                     <TabItem Focusable="False">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <StackPanel Margin="22,12,22,22">
-                                <Grid Margin="0,3,0,18">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel>
-                                        <TextBlock Text="نبض مالی کسب‌وکار" FontSize="28" FontWeight="Bold" />
-                                        <TextBlock Text="نمایی یکپارچه از فروش، تعهدها و سررسیدهای پیش‌رو" Foreground="{StaticResource TextSecondaryBrush}"
-                                                   FontSize="13" Margin="0,6,0,0" />
-                                    </StackPanel>
-                                    <Border Grid.Column="1" Background="#172624" BorderBrush="#344B41" BorderThickness="1" CornerRadius="14"
-                                            Padding="14,10" VerticalAlignment="Center">
-                                        <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
-                                            <TextBlock Text="●" Foreground="{StaticResource GreenBrush}" Margin="0,0,7,0" />
-                                            <TextBlock Text="منبع دادهٔ فعال" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" />
-                                        </StackPanel>
-                                    </Border>
-                                </Grid>
-
-                                <Border Background="#152320" BorderBrush="#574C31" BorderThickness="1" CornerRadius="16" Padding="15,12" Margin="0,0,0,16">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="32" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="ⓘ" Grid.Column="0" Foreground="{StaticResource GoldBrush}" FontSize="18" VerticalAlignment="Center" />
-                                        <StackPanel Grid.Column="1">
-                                            <TextBlock Text="{Binding DataModeLabel}" Foreground="{StaticResource GoldLightBrush}" FontWeight="Bold" />
-                                            <TextBlock Text="{Binding DataSourceDescription}"
-                                                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-
-                                <UniformGrid Columns="4" Margin="-3,0,-3,16">
-                                    <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="16" Padding="15" Margin="3">
-                                        <StackPanel>
-                                            <TextBlock Text="فروش امروز" Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
-                                            <TextBlock Text="{Binding TodaySales}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"
-                                                       TextTrimming="CharacterEllipsis" ToolTip="{Binding TodaySales}" Margin="0,11,0,4" />
-                                            <TextBlock Text="مجموع فروش" Foreground="{StaticResource BlueBrush}" FontSize="10" />
-                                        </StackPanel>
-                                    </Border>
-                                    <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="16" Padding="15" Margin="3">
-                                        <StackPanel>
-                                            <TextBlock Text="ورودی · ۷ روز پیش‌رو" Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
-                                            <TextBlock Text="{Binding Incoming7}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource GreenBrush}"
-                                                       TextTrimming="CharacterEllipsis" ToolTip="{Binding Incoming7}" Margin="0,11,0,4" />
-                                            <TextBlock Text="چک‌های دریافتی در انتظار" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-                                        </StackPanel>
-                                    </Border>
-                                    <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="16" Padding="15" Margin="3">
-                                        <StackPanel>
-                                            <TextBlock Text="خروجی · ۷ روز پیش‌رو" Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
-                                            <TextBlock Text="{Binding Outgoing7}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource RedBrush}"
-                                                       TextTrimming="CharacterEllipsis" ToolTip="{Binding Outgoing7}" Margin="0,11,0,4" />
-                                            <TextBlock Text="چک‌های پرداختی در انتظار" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-                                        </StackPanel>
-                                    </Border>
-                                    <Border Background="#172320" BorderBrush="#425543" BorderThickness="1" CornerRadius="16" Padding="15" Margin="3">
-                                        <StackPanel>
-                                            <TextBlock Text="خالص · ۷ روز پیش‌رو" Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
-                                            <TextBlock Text="{Binding Net7}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource GoldLightBrush}"
-                                                       TextTrimming="CharacterEllipsis" ToolTip="{Binding Net7}" Margin="0,11,0,4" />
-                                            <TextBlock Text="ورودی منهای خروجی" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-                                        </StackPanel>
-                                    </Border>
-                                </UniformGrid>
-
+                        <ScrollViewer x:Name="DashboardScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <Border MinHeight="{Binding ElementName=DashboardScrollViewer, Path=ViewportHeight}" Padding="22,12,22,22">
                                 <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="1.45*" />
-                                        <ColumnDefinition Width="1*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1"
-                                            CornerRadius="18" Padding="17" Margin="0,0,8,0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid Grid.Row="0" Margin="0,3,0,18">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
                                         <StackPanel>
-                                            <Grid Margin="0,0,0,12">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel Grid.Column="0">
-                                                    <TextBlock Text="روند فروش" FontSize="16" FontWeight="Bold" />
-                                                    <TextBlock Text="تجمیع فروش هر روز · میلیون تومان" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
-                                                </StackPanel>
-                                                <TextBlock Grid.Column="1" Text="{Binding SalesTotal}" HorizontalAlignment="Left" VerticalAlignment="Top"
-                                                           Foreground="{StaticResource GoldLightBrush}" FontWeight="SemiBold" FontSize="11" />
-                                            </Grid>
-                                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                                                <ItemsControl ItemsSource="{Binding SalesChart}" Height="166">
-                                                    <ItemsControl.ItemsPanel>
-                                                        <ItemsPanelTemplate>
-                                                            <StackPanel Orientation="Horizontal" />
-                                                        </ItemsPanelTemplate>
-                                                    </ItemsControl.ItemsPanel>
+                                            <TextBlock Text="نبض مالی کسب‌وکار" FontSize="28" FontWeight="Bold" />
+                                            <TextBlock Text="نمایی یکپارچه از فروش، تعهدها و سررسیدهای پیش‌رو" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       FontSize="13" Margin="0,6,0,0" />
+                                        </StackPanel>
+                                        <Border Grid.Column="1" Background="{DynamicResource BadgeSurfaceBrush}" BorderBrush="{DynamicResource SoftBorderBrush}" BorderThickness="1" CornerRadius="14"
+                                                Padding="14,10" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
+                                                <TextBlock Text="●" Foreground="{DynamicResource GreenBrush}" Margin="0,0,7,0" />
+                                                <TextBlock Text="منبع دادهٔ فعال" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <Border Grid.Row="1" Background="{DynamicResource NoticeSurfaceBrush}" BorderBrush="{DynamicResource NoticeBorderBrush}" BorderThickness="1" CornerRadius="16" Padding="15,12" Margin="0,0,0,16">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="32" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="ⓘ" Grid.Column="0" Foreground="{DynamicResource GoldBrush}" FontSize="18" VerticalAlignment="Center" />
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="{Binding DataModeLabel}" Foreground="{DynamicResource GoldLightBrush}" FontWeight="Bold" />
+                                                <TextBlock Text="{Binding DataSourceDescription}"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <UniformGrid Grid.Row="2" Columns="4" Margin="-3,0,-3,16">
+                                        <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="16" Padding="15" Margin="3">
+                                            <StackPanel>
+                                                <TextBlock Text="فروش امروز" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" />
+                                                <TextBlock Text="{Binding TodaySales}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                           TextTrimming="CharacterEllipsis" ToolTip="{Binding TodaySales}" Margin="0,11,0,4" />
+                                                <TextBlock Text="مجموع فروش" Foreground="{DynamicResource BlueBrush}" FontSize="10" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="16" Padding="15" Margin="3">
+                                            <StackPanel>
+                                                <TextBlock Text="ورودی · ۷ روز پیش‌رو" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" />
+                                                <TextBlock Text="{Binding Incoming7}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource GreenBrush}"
+                                                           TextTrimming="CharacterEllipsis" ToolTip="{Binding Incoming7}" Margin="0,11,0,4" />
+                                                <TextBlock Text="چک‌های دریافتی در انتظار" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="16" Padding="15" Margin="3">
+                                            <StackPanel>
+                                                <TextBlock Text="خروجی · ۷ روز پیش‌رو" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" />
+                                                <TextBlock Text="{Binding Outgoing7}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource RedBrush}"
+                                                           TextTrimming="CharacterEllipsis" ToolTip="{Binding Outgoing7}" Margin="0,11,0,4" />
+                                                <TextBlock Text="چک‌های پرداختی در انتظار" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Background="{DynamicResource BrandSurfaceBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" CornerRadius="16" Padding="15" Margin="3">
+                                            <StackPanel>
+                                                <TextBlock Text="خالص · ۷ روز پیش‌رو" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" />
+                                                <TextBlock Text="{Binding Net7}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource GoldLightBrush}"
+                                                           TextTrimming="CharacterEllipsis" ToolTip="{Binding Net7}" Margin="0,11,0,4" />
+                                                <TextBlock Text="ورودی منهای خروجی" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                            </StackPanel>
+                                        </Border>
+                                    </UniformGrid>
+
+                                    <Grid Grid.Row="3" MinHeight="300">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1.45*" />
+                                            <ColumnDefinition Width="1*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
+                                                CornerRadius="18" Padding="17" Margin="0,0,8,0">
+                                            <StackPanel VerticalAlignment="Center">
+                                                <Grid Margin="0,0,0,12">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="روند فروش" FontSize="16" FontWeight="Bold" />
+                                                        <TextBlock Text="تجمیع فروش هر روز · میلیون تومان" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="1" Text="{Binding SalesTotal}" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                                               Foreground="{DynamicResource GoldLightBrush}" FontWeight="SemiBold" FontSize="11" />
+                                                </Grid>
+                                                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                                    <ItemsControl ItemsSource="{Binding SalesChart}" Height="220">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <StackPanel Orientation="Horizontal" />
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Grid Width="62" Margin="4,0">
+                                                                    <Grid.RowDefinitions>
+                                                                        <RowDefinition Height="174" />
+                                                                        <RowDefinition Height="24" />
+                                                                        <RowDefinition Height="20" />
+                                                                    </Grid.RowDefinitions>
+                                                                    <Border Grid.Row="0" Background="{DynamicResource ChartTrackBrush}" CornerRadius="8" Height="164" VerticalAlignment="Bottom">
+                                                                        <Border Height="{Binding ChartBarHeight}" VerticalAlignment="Bottom" CornerRadius="8"
+                                                                                Background="{DynamicResource GoldGradientBrush}" Margin="5,0" />
+                                                                    </Border>
+                                                                    <TextBlock Grid.Row="1" Text="{Binding ChartAmountText}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                                    <TextBlock Grid.Row="2" Text="{Binding ShortDateText}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                                </Grid>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </ScrollViewer>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Grid.Column="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
+                                                CornerRadius="18" Padding="17" Margin="8,0,0,0">
+                                            <StackPanel VerticalAlignment="Center">
+                                                <Grid Margin="0,0,0,12">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="سررسیدهای نزدیک" FontSize="16" FontWeight="Bold" />
+                                                        <TextBlock Text="اولویت سررسیدهای فعال" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
+                                                    </StackPanel>
+                                                    <Border Grid.Column="1" HorizontalAlignment="Left" Background="{DynamicResource NotificationBrush}" CornerRadius="8" Padding="8,4">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="هشدار " Foreground="{DynamicResource GoldLightBrush}" FontSize="10" />
+                                                            <TextBlock Text="{Binding Warnings}" Foreground="{DynamicResource GoldLightBrush}" FontSize="10" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Grid>
+                                                <ItemsControl ItemsSource="{Binding UpcomingChecks}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
-                                                            <Grid Width="62" Margin="4,0">
-                                                                <Grid.RowDefinitions>
-                                                                    <RowDefinition Height="116" />
-                                                                    <RowDefinition Height="22" />
-                                                                    <RowDefinition Height="20" />
-                                                                </Grid.RowDefinitions>
-                                                                <Border Grid.Row="0" Background="#0B1719" CornerRadius="8" Height="108" VerticalAlignment="Bottom">
-                                                                    <Border Height="{Binding ChartBarHeight}" VerticalAlignment="Bottom" CornerRadius="8"
-                                                                            Background="{StaticResource GoldGradientBrush}" Margin="5,0" />
-                                                                </Border>
-                                                                <TextBlock Grid.Row="1" Text="{Binding ChartAmountText}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"
-                                                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                                <TextBlock Grid.Row="2" Text="{Binding ShortDateText}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"
-                                                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                            </Grid>
+                                                            <Border Background="{DynamicResource HeaderSurfaceBrush}" BorderBrush="{DynamicResource GridLineBrush}" BorderThickness="1" CornerRadius="12"
+                                                                    Padding="10" Margin="0,0,0,7">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="5" />
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <Border Grid.Column="0" Background="{DynamicResource GoldBrush}" CornerRadius="2" Margin="0,2,9,2" />
+                                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                                        <TextBlock Text="{Binding Party}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                                                        <TextBlock Text="{Binding Kind}" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,3,0,0" />
+                                                                    </StackPanel>
+                                                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                                                        <TextBlock Text="{Binding AmountText}" Foreground="{DynamicResource GoldLightBrush}" FontWeight="SemiBold" FontSize="11"
+                                                                                   HorizontalAlignment="Left" />
+                                                                        <TextBlock Text="{Binding DueDateText}" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,3,0,0"
+                                                                                   HorizontalAlignment="Left" />
+                                                                    </StackPanel>
+                                                                </Grid>
+                                                            </Border>
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
-                                            </ScrollViewer>
-                                        </StackPanel>
-                                    </Border>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
 
-                                    <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1"
-                                            CornerRadius="18" Padding="17" Margin="8,0,0,0">
-                                        <StackPanel>
-                                            <Grid Margin="0,0,0,12">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel Grid.Column="0">
-                                                    <TextBlock Text="سررسیدهای نزدیک" FontSize="16" FontWeight="Bold" />
-                                                    <TextBlock Text="اولویت سررسیدهای فعال" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
-                                                </StackPanel>
-                                                <Border Grid.Column="1" HorizontalAlignment="Left" Background="#202D27" CornerRadius="8" Padding="8,4">
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="هشدار " Foreground="{StaticResource GoldLightBrush}" FontSize="10" />
-                                                        <TextBlock Text="{Binding Warnings}" Foreground="{StaticResource GoldLightBrush}" FontSize="10" />
-                                                    </StackPanel>
-                                                </Border>
-                                            </Grid>
-                                            <ItemsControl ItemsSource="{Binding UpcomingChecks}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border Background="#0D191B" BorderBrush="#203235" BorderThickness="1" CornerRadius="12"
-                                                                Padding="10" Margin="0,0,0,7">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="5" />
-                                                                    <ColumnDefinition Width="*" />
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                </Grid.ColumnDefinitions>
-                                                                <Border Grid.Column="0" Background="{StaticResource GoldBrush}" CornerRadius="2" Margin="0,2,9,2" />
-                                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                                    <TextBlock Text="{Binding Party}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                                                                    <TextBlock Text="{Binding Kind}" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,3,0,0" />
-                                                                </StackPanel>
-                                                                <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                                                    <TextBlock Text="{Binding AmountText}" Foreground="{StaticResource GoldLightBrush}" FontWeight="SemiBold" FontSize="11"
-                                                                               HorizontalAlignment="Left" />
-                                                                    <TextBlock Text="{Binding DueDateText}" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,3,0,0"
-                                                                               HorizontalAlignment="Left" />
-                                                                </StackPanel>
-                                                            </Grid>
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </StackPanel>
-                                    </Border>
+                                    <Grid Grid.Row="4" Margin="0,14,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
+                                                CornerRadius="14" Padding="14" Margin="0,0,6,0">
+                                            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
+                                                <TextBlock Text="●" Foreground="{DynamicResource RedBrush}" FontSize="13" Margin="0,0,8,0" />
+                                                <TextBlock Text="طرف‌حساب‌های پرریسک" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                                <TextBlock Text="{Binding RiskCustomers}" Foreground="{DynamicResource GoldLightBrush}" FontWeight="Bold" Margin="8,0,0,0" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Grid.Column="1" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
+                                                CornerRadius="14" Padding="14" Margin="6,0,0,0">
+                                            <TextBlock Text="شاخص‌های نقدینگی، ماندهٔ آغازین صفر را فرض می‌کنند؛ پیش‌بینی، موجودی بانکی واقعی نیست."
+                                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="11" TextWrapping="Wrap" />
+                                        </Border>
+                                    </Grid>
                                 </Grid>
-
-                                <Grid Margin="0,14,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Background="#111E20" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1"
-                                            CornerRadius="14" Padding="14" Margin="0,0,6,0">
-                                        <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
-                                            <TextBlock Text="●" Foreground="{StaticResource RedBrush}" FontSize="13" Margin="0,0,8,0" />
-                                            <TextBlock Text="طرف‌حساب‌های پرریسک" Foreground="{StaticResource TextSecondaryBrush}" />
-                                            <TextBlock Text="{Binding RiskCustomers}" Foreground="{StaticResource GoldLightBrush}" FontWeight="Bold" Margin="8,0,0,0" />
-                                        </StackPanel>
-                                    </Border>
-                                    <Border Grid.Column="1" Background="#111E20" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1"
-                                            CornerRadius="14" Padding="14" Margin="6,0,0,0">
-                                        <TextBlock Text="شاخص‌های نقدینگی، ماندهٔ آغازین صفر را فرض می‌کنند؛ پیش‌بینی، موجودی بانکی واقعی نیست."
-                                                   Foreground="{StaticResource TextMutedBrush}" FontSize="11" TextWrapping="Wrap" />
-                                    </Border>
-                                </Grid>
-                            </StackPanel>
+                            </Border>
                         </ScrollViewer>
                     </TabItem>
 
@@ -377,18 +390,18 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="مرکز چک‌ها" FontSize="24" FontWeight="Bold" />
-                                    <TextBlock Text="جست‌وجو، فیلتر و بررسی تعهدهای نگاشت‌شده" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,5,0,0" />
+                                    <TextBlock Text="جست‌وجو، فیلتر و بررسی تعهدهای نگاشت‌شده" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,5,0,0" />
                                 </StackPanel>
-                                <Border Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Background="#172624" BorderBrush="#344B41"
+                                <Border Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Background="{DynamicResource BadgeSurfaceBrush}" BorderBrush="{DynamicResource SoftBorderBrush}"
                                         BorderThickness="1" CornerRadius="10" Padding="10,6">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="انتخاب‌شده: " Foreground="{StaticResource GoldLightBrush}" FontSize="11" />
-                                        <TextBlock Text="{Binding SelectedCountText}" Foreground="{StaticResource GoldLightBrush}" FontSize="11" />
+                                        <TextBlock Text="انتخاب‌شده: " Foreground="{DynamicResource GoldLightBrush}" FontSize="11" />
+                                        <TextBlock Text="{Binding SelectedCountText}" Foreground="{DynamicResource GoldLightBrush}" FontSize="11" />
                                     </StackPanel>
                                 </Border>
                             </Grid>
 
-                            <Border Grid.Row="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1"
+                            <Border Grid.Row="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
                                     CornerRadius="15" Padding="10" Margin="0,0,0,10">
                                 <WrapPanel VerticalAlignment="Center">
                                     <TextBox Width="220" Margin="3" ToolTip="جست‌وجو در شماره، طرف حساب، بانک و وضعیت"
@@ -419,9 +432,9 @@
                                         <DataGridTemplateColumn Header="وضعیت" Width="115">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
-                                                    <Border Background="#1B2B29" BorderBrush="#314943" BorderThickness="1" CornerRadius="8" Padding="8,4"
+                                                    <Border Background="{DynamicResource SelectionSurfaceBrush}" BorderBrush="{DynamicResource StatusBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="8,4"
                                                             HorizontalAlignment="Right">
-                                                        <TextBlock Text="{Binding Status}" Foreground="{StaticResource GoldLightBrush}" FontSize="11" />
+                                                        <TextBlock Text="{Binding Status}" Foreground="{DynamicResource GoldLightBrush}" FontSize="11" />
                                                     </Border>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
@@ -429,12 +442,12 @@
                                         <DataGridTextColumn Header="امتیاز ریسک" Binding="{Binding RiskText}" Width="90" />
                                     </DataGrid.Columns>
                                 </DataGrid>
-                                <TextBlock Text="موردی با این معیارها پیدا نشد" FontSize="14" Foreground="{StaticResource TextMutedBrush}"
+                                <TextBlock Text="موردی با این معیارها پیدا نشد" FontSize="14" Foreground="{DynamicResource TextMutedBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
                                            Visibility="{Binding HasNoFilteredChecks, Converter={StaticResource BooleanToVisibilityConverter}}" />
                             </Grid>
 
-                            <Border Grid.Row="3" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1"
+                            <Border Grid.Row="3" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
                                     CornerRadius="15" Padding="13" Margin="0,10,0,0">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -442,14 +455,14 @@
                                         <ColumnDefinition Width="1.85*" />
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                        <TextBlock Text="جمع انتخاب‌شده" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-                                        <TextBlock Text="{Binding SelectedTotal}" Foreground="{StaticResource GoldLightBrush}" FontWeight="Bold" FontSize="14" Margin="0,4,0,2" />
-                                        <TextBlock Text="{Binding WeightedText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" TextWrapping="Wrap" />
+                                        <TextBlock Text="جمع انتخاب‌شده" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="{Binding SelectedTotal}" Foreground="{DynamicResource GoldLightBrush}" FontWeight="Bold" FontSize="14" Margin="0,4,0,2" />
+                                        <TextBlock Text="{Binding WeightedText}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10" TextWrapping="Wrap" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
                                         <Grid Margin="0,0,0,4">
-                                            <TextBlock Text="سناریوی جابه‌جایی سررسیدِ چک‌های دریافتیِ انتخاب‌شده" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
-                                            <TextBlock Text="{Binding ShiftDaysLabel}" HorizontalAlignment="Left" Foreground="{StaticResource GoldLightBrush}"
+                                            <TextBlock Text="سناریوی جابه‌جایی سررسیدِ چک‌های دریافتیِ انتخاب‌شده" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                            <TextBlock Text="{Binding ShiftDaysLabel}" HorizontalAlignment="Left" Foreground="{DynamicResource GoldLightBrush}"
                                                        FontSize="10" FontWeight="SemiBold" />
                                         </Grid>
                                         <Grid>
@@ -458,12 +471,12 @@
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="−۱۴" Grid.Column="0" Foreground="{StaticResource TextMutedBrush}" FontSize="10" VerticalAlignment="Center" />
+                                            <TextBlock Text="−۱۴" Grid.Column="0" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" VerticalAlignment="Center" />
                                             <Slider Grid.Column="1" Minimum="-14" Maximum="30" TickFrequency="1" IsSnapToTickEnabled="True"
                                                     Value="{Binding ShiftDays, Mode=TwoWay}" Margin="12,0" VerticalAlignment="Center" />
-                                            <TextBlock Text="+۳۰" Grid.Column="2" Foreground="{StaticResource TextMutedBrush}" FontSize="10" VerticalAlignment="Center" />
+                                            <TextBlock Text="+۳۰" Grid.Column="2" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" VerticalAlignment="Center" />
                                         </Grid>
-                                        <TextBlock Foreground="{StaticResource RedBrush}" FontSize="10" Margin="0,3,0,0" TextWrapping="Wrap">
+                                        <TextBlock Foreground="{DynamicResource RedBrush}" FontSize="10" Margin="0,3,0,0" TextWrapping="Wrap">
                                             <Run Text="کمترین ماندهٔ تجمعیِ سناریو (از صفر): " />
                                             <Run Text="{Binding SimulatedGap, Mode=OneWay}" FontWeight="Bold" />
                                         </TextBlock>
@@ -478,7 +491,7 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="180" />
+                                <RowDefinition Height="230" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
 
@@ -489,34 +502,34 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="فروش و عملکرد" FontSize="24" FontWeight="Bold" />
-                                    <TextBlock Text="جمع‌بندی و نمودار از داده‌های فروش بارگذاری‌شده" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,5,0,0" />
+                                    <TextBlock Text="جمع‌بندی و نمودار از داده‌های فروش بارگذاری‌شده" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,5,0,0" />
                                 </StackPanel>
                                 <Button Grid.Column="1" Content="خروجی CSV" HorizontalAlignment="Left" VerticalAlignment="Center" Click="SalesCsv_Click" />
                             </Grid>
 
                             <UniformGrid Grid.Row="1" Columns="3" Margin="-3,0,-3,10">
-                                <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="14" Padding="13" Margin="3">
+                                <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="14" Padding="13" Margin="3">
                                     <StackPanel>
-                                        <TextBlock Text="فروش ثبت‌شده" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-                                        <TextBlock Text="{Binding SalesTotal}" Foreground="{StaticResource GoldLightBrush}" FontWeight="Bold" FontSize="14" Margin="0,7,0,0" />
+                                        <TextBlock Text="فروش ثبت‌شده" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="{Binding SalesTotal}" Foreground="{DynamicResource GoldLightBrush}" FontWeight="Bold" FontSize="14" Margin="0,7,0,0" />
                                     </StackPanel>
                                 </Border>
-                                <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="14" Padding="13" Margin="3">
+                                <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="14" Padding="13" Margin="3">
                                     <StackPanel>
-                                        <TextBlock Text="سود ثبت‌شده" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-                                        <TextBlock Text="{Binding SalesProfit}" Foreground="{StaticResource GreenBrush}" FontWeight="Bold" FontSize="14" Margin="0,7,0,0" />
+                                        <TextBlock Text="سود ثبت‌شده" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="{Binding SalesProfit}" Foreground="{DynamicResource GreenBrush}" FontWeight="Bold" FontSize="14" Margin="0,7,0,0" />
                                     </StackPanel>
                                 </Border>
-                                <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="14" Padding="13" Margin="3">
+                                <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="14" Padding="13" Margin="3">
                                     <StackPanel>
-                                        <TextBlock Text="بیشترین فروش بر اساس مبلغ" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-                                        <TextBlock Text="{Binding TopCustomer}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="12"
+                                        <TextBlock Text="بیشترین فروش بر اساس مبلغ" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="{Binding TopCustomer}" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="12"
                                                    TextTrimming="CharacterEllipsis" ToolTip="{Binding TopCustomer}" Margin="0,7,0,0" />
                                     </StackPanel>
                                 </Border>
                             </UniformGrid>
 
-                            <Border Grid.Row="2" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1"
+                            <Border Grid.Row="2" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
                                     CornerRadius="16" Padding="13" Margin="0,0,0,10">
                                 <Grid>
                                     <Grid.RowDefinitions>
@@ -530,12 +543,12 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="مقایسهٔ فروش روزانه · ۹۰ روز اخیر" FontSize="12" FontWeight="SemiBold" />
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
-                                            <TextBlock Text="فروشندهٔ پیشتاز: " Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-                                            <TextBlock Text="{Binding TopSeller}" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
+                                            <TextBlock Text="فروشندهٔ پیشتاز: " Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                            <TextBlock Text="{Binding TopSeller}" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
                                         </StackPanel>
                                     </Grid>
                                     <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,4,0,0">
-                                        <ItemsControl ItemsSource="{Binding SalesChart}" Height="116">
+                                        <ItemsControl ItemsSource="{Binding SalesChart}" Height="180">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
                                                     <StackPanel Orientation="Horizontal" />
@@ -545,14 +558,14 @@
                                                 <DataTemplate>
                                                     <Grid Width="84" Margin="5,0">
                                                         <Grid.RowDefinitions>
-                                                            <RowDefinition Height="82" />
-                                                            <RowDefinition Height="17" />
+                                                            <RowDefinition Height="152" />
+                                                            <RowDefinition Height="20" />
                                                         </Grid.RowDefinitions>
-                                                        <Border Grid.Row="0" Background="#0B1719" CornerRadius="7" Height="78" VerticalAlignment="Bottom">
+                                                        <Border Grid.Row="0" Background="{DynamicResource ChartTrackBrush}" CornerRadius="7" Height="146" VerticalAlignment="Bottom">
                                                             <Border Height="{Binding ChartBarHeight}" VerticalAlignment="Bottom" CornerRadius="7"
-                                                                    Background="{StaticResource GoldGradientBrush}" Margin="7,0" />
+                                                                    Background="{DynamicResource GoldGradientBrush}" Margin="7,0" />
                                                         </Border>
-                                                        <TextBlock Grid.Row="1" Text="{Binding ShortDateText}" FontSize="9" Foreground="{StaticResource TextMutedBrush}"
+                                                        <TextBlock Grid.Row="1" Text="{Binding ShortDateText}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                     </Grid>
                                                 </DataTemplate>
@@ -586,31 +599,31 @@
 
                             <StackPanel Grid.Row="0" Margin="2,0,2,12">
                                 <TextBlock Text="رادار نقدینگی" FontSize="24" FontWeight="Bold" />
-                                <TextBlock Text="پیش‌بینی روزانهٔ ۳۰ روز آینده بر مبنای چک‌های در انتظار" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,5,0,0" />
+                                <TextBlock Text="پیش‌بینی روزانهٔ ۳۰ روز آینده بر مبنای چک‌های در انتظار" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,5,0,0" />
                             </StackPanel>
 
-                            <Border Grid.Row="1" Background="#152320" BorderBrush="#574C31" BorderThickness="1" CornerRadius="14" Padding="13" Margin="0,0,0,12">
+                            <Border Grid.Row="1" Background="{DynamicResource NoticeSurfaceBrush}" BorderBrush="{DynamicResource NoticeBorderBrush}" BorderThickness="1" CornerRadius="14" Padding="13" Margin="0,0,0,12">
                                 <TextBlock Text="ماندهٔ آغازین صفر فرض شده است؛ این تصویر برآورد نمونه است، نه ماندهٔ بانکی یا پیش‌بینی مبتنی بر دادهٔ واقعی. تغییر سناریو در مرکز چک‌ها فقط چک‌های دریافتیِ انتخاب‌شده را جابه‌جا می‌کند."
-                                           TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" />
+                                           TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" />
                             </Border>
 
                             <UniformGrid Grid.Row="2" Columns="3" Margin="-3,0,-3,12">
-                                <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="13" Padding="12" Margin="3">
+                                <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="13" Padding="12" Margin="3">
                                     <StackPanel>
-                                        <TextBlock Text="ورودی هفت‌روزه" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-                                        <TextBlock Text="{Binding Incoming7}" Foreground="{StaticResource GreenBrush}" FontWeight="Bold" Margin="0,6,0,0" />
+                                        <TextBlock Text="ورودی هفت‌روزه" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="{Binding Incoming7}" Foreground="{DynamicResource GreenBrush}" FontWeight="Bold" Margin="0,6,0,0" />
                                     </StackPanel>
                                 </Border>
-                                <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="13" Padding="12" Margin="3">
+                                <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="13" Padding="12" Margin="3">
                                     <StackPanel>
-                                        <TextBlock Text="خروجی هفت‌روزه" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-                                        <TextBlock Text="{Binding Outgoing7}" Foreground="{StaticResource RedBrush}" FontWeight="Bold" Margin="0,6,0,0" />
+                                        <TextBlock Text="خروجی هفت‌روزه" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="{Binding Outgoing7}" Foreground="{DynamicResource RedBrush}" FontWeight="Bold" Margin="0,6,0,0" />
                                     </StackPanel>
                                 </Border>
-                                <Border Background="#172320" BorderBrush="#425543" BorderThickness="1" CornerRadius="13" Padding="12" Margin="3">
+                                <Border Background="{DynamicResource BrandSurfaceBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" CornerRadius="13" Padding="12" Margin="3">
                                     <StackPanel>
-                                        <TextBlock Text="خالص هفت‌روزه" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-                                        <TextBlock Text="{Binding Net7}" Foreground="{StaticResource GoldLightBrush}" FontWeight="Bold" Margin="0,6,0,0" />
+                                        <TextBlock Text="خالص هفت‌روزه" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="{Binding Net7}" Foreground="{DynamicResource GoldLightBrush}" FontWeight="Bold" Margin="0,6,0,0" />
                                     </StackPanel>
                                 </Border>
                             </UniformGrid>
@@ -626,12 +639,12 @@
                                                 <TextBlock Text="{Binding BalanceText}">
                                                     <TextBlock.Style>
                                                         <Style TargetType="{x:Type TextBlock}">
-                                                            <Setter Property="Foreground" Value="{StaticResource GreenBrush}" />
+                                                            <Setter Property="Foreground" Value="{DynamicResource GreenBrush}" />
                                                             <Setter Property="FontFamily" Value="Segoe UI" />
                                                             <Setter Property="FontSize" Value="13" />
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding IsNegative}" Value="True">
-                                                                    <Setter Property="Foreground" Value="{StaticResource RedBrush}" />
+                                                                    <Setter Property="Foreground" Value="{DynamicResource RedBrush}" />
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>

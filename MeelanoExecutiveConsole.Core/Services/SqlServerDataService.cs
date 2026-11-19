@@ -207,7 +207,7 @@ public sealed class SqlServerDataService
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(settings);
-        progress?.Report(new SqlServerProgress(8, "برقراری اتصال رمزگذاری‌شده به SQL Server…"));
+        progress?.Report(new SqlServerProgress(8, "برقراری اتصال مستقیم به SQL Server…"));
         await using var connection = settings.CreateConnection("master");
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
         progress?.Report(new SqlServerProgress(70, "اتصال برقرار شد؛ دریافت پایگاه‌های در دسترس…"));
@@ -336,7 +336,7 @@ public sealed class SqlServerDataService
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(mapping);
         ValidateMapping(mapping);
-        progress?.Report(new SqlServerProgress(5, "برقراری اتصال رمزگذاری‌شده و آماده‌سازی خواندن…"));
+        progress?.Report(new SqlServerProgress(5, "برقراری اتصال و آماده‌سازی خواندن…"));
         await using var connection = settings.CreateConnection(database);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
         progress?.Report(new SqlServerProgress(14, "بررسی حجم داده‌های انتخاب‌شده…"));
@@ -713,7 +713,7 @@ public static class SqlServerErrorMessages
                 4060 or 916 => "دسترسی به پایگاه داده رد شد؛ مجوز CONNECT و SELECT حساب را بررسی کنید.",
                 -2 => "مهلت اتصال/خواندن تمام شد؛ IP، پورت، فایروال و در دسترس بودن SQL Server را بررسی کنید.",
                 53 or 40 or 10060 or 10061 => "به SQL Server وصل نشد؛ IP، پورت ۵۰۵۰/۱۴۳۳، فایروال و port forwarding را بررسی کنید.",
-                _ => $"SQL Server عملیات را نپذیرفت (کد خطا {sqlException.Number.ToString(CultureInfo.InvariantCulture)}). دسترسی schema و گواهی TLS را بررسی کنید."
+                _ => $"SQL Server عملیات را نپذیرفت (کد خطا {sqlException.Number.ToString(CultureInfo.InvariantCulture)}). تنظیمات اتصال و دسترسی schema را بررسی کنید."
             };
         }
 
@@ -721,7 +721,7 @@ public static class SqlServerErrorMessages
             return "عملیات لغو شد.";
         if (exception is TimeoutException)
             return "مهلت عملیات تمام شد؛ شبکه و پاسخ‌گویی SQL Server را بررسی کنید.";
-        return "عملیات پایگاه داده انجام نشد. تنظیمات اتصال، TLS و مجوز فقط‌خواندنی را بررسی کنید.";
+        return "عملیات پایگاه داده انجام نشد. تنظیمات اتصال و مجوز فقط‌خواندنی را بررسی کنید.";
     }
 }
 

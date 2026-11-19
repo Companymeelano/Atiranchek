@@ -255,7 +255,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         foreach (var point in SalesChart)
         {
             var ratio = maximum <= 0 ? 0 : (double)(point.Amount / maximum);
-            point.ChartBarHeight = Math.Clamp(20 + (ratio * 84), 20, 104);
+            point.ChartBarHeight = Math.Clamp(20 + (ratio * 124), 20, 144);
         }
     }
 

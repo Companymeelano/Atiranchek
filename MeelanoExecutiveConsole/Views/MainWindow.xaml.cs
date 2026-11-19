@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using MeelanoExecutiveConsole;
 using MeelanoExecutiveConsole.Models;
 using MeelanoExecutiveConsole.Services;
 using MeelanoExecutiveConsole.ViewModels;
@@ -26,12 +27,27 @@ public partial class MainWindow : Window
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
         SectionTabs.SelectedIndex = 0;
+        UpdateThemeToggle();
+    }
+
+    private void ThemeToggle_Click(object sender, RoutedEventArgs e)
+    {
+        ThemeManager.Toggle();
+        UpdateThemeToggle();
+    }
+
+    private void UpdateThemeToggle()
+    {
+        ThemeToggleButton.Content = ThemeManager.ToggleLabel;
+        ThemeToggleButton.ToolTip = ThemeManager.ToggleToolTip;
     }
 
     private void ConnectSql_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new SqlConnectionWindow { Owner = this };
-        if (dialog.ShowDialog() != true || dialog.ImportedRepository is not { } repository)
+        var result = dialog.ShowDialog();
+        UpdateThemeToggle();
+        if (result != true || dialog.ImportedRepository is not { } repository)
             return;
 
         vm = new MainViewModel(repository);

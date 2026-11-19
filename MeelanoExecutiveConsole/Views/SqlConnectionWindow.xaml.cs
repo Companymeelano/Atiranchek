@@ -6,6 +6,7 @@ using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Media3D;
+using MeelanoExecutiveConsole;
 using MeelanoExecutiveConsole.Models;
 using MeelanoExecutiveConsole.Services;
 
@@ -35,8 +36,24 @@ public partial class SqlConnectionWindow : Window
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
+        var workArea = SystemParameters.WorkArea;
+        Width = Math.Min(Width, Math.Max(MinWidth, workArea.Width - 32));
+        Height = Math.Min(Height, Math.Max(MinHeight, workArea.Height - 32));
         initialized = true;
         UpdateAuthenticationControls();
+        UpdateThemeToggle();
+    }
+
+    private void ThemeToggle_Click(object sender, RoutedEventArgs e)
+    {
+        ThemeManager.Toggle();
+        UpdateThemeToggle();
+    }
+
+    private void UpdateThemeToggle()
+    {
+        ThemeToggleButton.Content = ThemeManager.ToggleLabel;
+        ThemeToggleButton.ToolTip = ThemeManager.ToggleToolTip;
     }
 
     private async void Connect_Click(object sender, RoutedEventArgs e)
@@ -71,7 +88,7 @@ public partial class SqlConnectionWindow : Window
         updatingDatabaseList = false;
         ConnectionStatusText.Text = databases.Count == 0
             ? "اتصال برقرار شد، اما دیتابیس کاربریِ قابل‌دسترسی پیدا نشد."
-            : $"اتصال امن برقرار شد · {PersianFormatting.Number(databases.Count)} دیتابیس";
+            : $"اتصال برقرار شد · {PersianFormatting.Number(databases.Count)} دیتابیس";
 
         if (databases.Count == 0)
             ShowError("فهرست پایگاه داده خالی است. مجوز اتصال به master و دسترسی دیتابیس را بررسی کنید.");
@@ -559,7 +576,7 @@ public partial class SqlConnectionWindow : Window
     {
         LoadingProgressBar.Value = 0;
         LoadingPercentText.Text = "۰٪";
-        LoadingStageText.Text = "آماده‌سازی اتصال امن…";
+        LoadingStageText.Text = "آماده‌سازی اتصال مستقیم…";
         foreach (var (rotation, animation) in loadingAnimations)
             rotation.BeginAnimation(AxisAngleRotation3D.AngleProperty, animation, HandoffBehavior.SnapshotAndReplace);
         LoadingOverlay.Visibility = Visibility.Visible;
@@ -607,7 +624,7 @@ public partial class SqlConnectionWindow : Window
     }
 
     private void ShowError(string message) =>
-        MessageBox.Show(this, message, "اتصال امن SQL Server", MessageBoxButton.OK, MessageBoxImage.Warning);
+        MessageBox.Show(this, message, "اتصال SQL Server", MessageBoxButton.OK, MessageBoxImage.Warning);
 
     private void InitializeLoadingScene()
     {
