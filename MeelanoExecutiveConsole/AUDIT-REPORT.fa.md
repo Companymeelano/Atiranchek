@@ -28,9 +28,9 @@
 5. پورت forward شدهٔ SQL را در اینترنت عمومی در دسترس نگذارید؛ VPN، firewall allowlist و certificate معتبر لازم‌اند.
 
 ## اعتبارسنجی
-- **نتیجهٔ محلی:** محیط این عامل Windows/WPF و .NET SDK ندارد؛ build محلی انجام نشده است.
-- **نتایج خودکار:** در انتظار Windows CI همین commit؛ اجرای موفق در این گزارش تا مشاهدهٔ run ادعا نمی‌شود.
-- Specsهای افزوده‌شده: نمایش تومان/شمسی، parse سخت‌گیرانهٔ تاریخ SQL/Jalali و رد تاریخ مبهم، اعتبارسنجی host/port، فقط‌خواندنی‌بودن snapshot و نمودار روزانهٔ ۹۰ روز اخیر. این Specs تا اجرای CI تأییدشده محسوب نمی‌شوند.
+- **نتیجهٔ محلی:** محیط این عامل Windows/WPF و .NET SDK ندارد؛ build محلی انجام نشد.
+- **Windows CI:** run `44533615187` روی commit `07b95db` موفق شد: restore، Specs، build انتشار، EXE تک‌فایلی self-contained، ساخت Setup و smoke test اجرای برنامهٔ نصب‌شده. [جزئیات run](https://github.com/Companymeelano/Atiranchek/actions/runs/44533615187).
+- Specs شامل نمایش تومان/شمسی، parse سخت‌گیرانهٔ تاریخ SQL/Jalali و رد تاریخ مبهم، اعتبارسنجی host/port، کلیدهای دقیق مقدار SQL و NULL، فقط‌خواندنی‌بودن snapshot و نمودار روزانهٔ ۹۰ روز اخیر است؛ اجرای Specs در همان run موفق بود.
 - موارد دستی باقی‌مانده حتی پس از CI: اتصال شبکهٔ واقعی، TLS CN/SAN و firewall/forwarding، فهرست مجوزدار دیتابیس‌ها، صحت انتخاب schema/ستون/واحد، reconcile مبلغ/تاریخ با منبع، DPI، چاپگر و SmartScreen.
 
 ## محدودیت‌های محصول
