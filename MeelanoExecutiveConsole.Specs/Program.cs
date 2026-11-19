@@ -240,7 +240,7 @@ internal static class Program
             Equal(Microsoft.Data.SqlClient.SqlConnectionEncryptOption.Mandatory, builder.Encrypt, "traffic remains encrypted");
             Equal(windowsAuth, builder.IntegratedSecurity, "selected authentication retained");
             Equal("master", builder.InitialCatalog, "requested database retained");
-            Equal(System.Data.ApplicationIntent.ReadOnly, builder.ApplicationIntent, "read-only routing retained");
+            Equal(Microsoft.Data.SqlClient.ApplicationIntent.ReadOnly, builder.ApplicationIntent, "read-only routing retained");
             False(builder.PersistSecurityInfo, "credential persistence disabled");
         }
     }
