@@ -17,7 +17,7 @@ internal static class Program
             ("Scenario shifts only selected pending incoming checks", ScenarioShift),
             ("Status transitions enforce check type and terminal states", StatusTransitions),
             ("Weighted date excludes completed checks and rounds to a whole day", WeightedDate),
-            ("Persian display uses grouped Persian digits", PersianFormatting),
+            ("Persian display uses grouped Persian digits", PersianFormattingDisplay),
             ("Persian search normalizes keyboard and digit variants", PersianSearchNormalization),
             ("CSV quotes correctly and protects text from formulas", CsvFormatting),
             ("View-model search supports Persian digits and empty results", ViewModelSearch),
@@ -134,7 +134,7 @@ internal static class Program
         Equal(0m, empty.Amount, "no pending total");
     }
 
-    private static void PersianFormatting()
+    private static void PersianFormattingDisplay()
     {
         Equal("۱٬۲۳۴٬۵۶۷", PersianFormatting.Number(1_234_567), "grouped Persian digits");
         Equal("۷۳٫۵ م", PersianFormatting.CompactMillions(73_500_000), "fractional compact chart value");
