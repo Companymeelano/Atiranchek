@@ -175,7 +175,7 @@ public partial class SqlConnectionWindow : Window
         bool isStatus)
     {
         if (tablePicker.SelectedItem is not SqlTableMetadata table
-            || GetSelectedColumn(fieldPicker, optional: true) is not { } column)
+            || GetOptionalColumn(fieldPicker) is not { } column)
         {
             ClearValueMapping(grid);
             return;
@@ -306,8 +306,8 @@ public partial class SqlConnectionWindow : Window
             GetSelectedColumn(CheckAmountField),
             GetSelectedColumn(CheckDueDateField),
             GetSelectedColumn(CheckStatusField),
-            GetSelectedColumn(CheckBankField, optional: true),
-            GetSelectedColumn(CheckRiskField, optional: true),
+            GetOptionalColumn(CheckBankField),
+            GetOptionalColumn(CheckRiskField),
             kindValues.ToDictionary(item => item.LookupKey, item => Enum.Parse<CheckKind>(item.TargetValue!, ignoreCase: false), StringComparer.Ordinal),
             statusValues.ToDictionary(item => item.LookupKey, item => item.TargetValue!, StringComparer.Ordinal),
             GetMultiplier(CheckAmountUnitCombo));
@@ -319,7 +319,7 @@ public partial class SqlConnectionWindow : Window
             GetSelectedColumn(SalesSellerField),
             GetSelectedColumn(SalesAmountField),
             GetSelectedColumn(SalesProfitField),
-            GetSelectedColumn(SalesCollectionStatusField, optional: true),
+            GetOptionalColumn(SalesCollectionStatusField),
             GetMultiplier(SalesAmountUnitCombo));
         return new SqlImportMapping(checkMapping, salesMapping);
     }
@@ -415,14 +415,18 @@ public partial class SqlConnectionWindow : Window
             SalesProfitField, SalesCollectionStatusField);
     }
 
-    private static string? GetSelectedColumn(ComboBox picker, bool optional = false)
+    private static string GetSelectedColumn(ComboBox picker)
     {
         var column = (picker.SelectedItem as ColumnChoice)?.Name;
         if (!string.IsNullOrWhiteSpace(column))
             return column;
-        if (optional)
-            return null;
         throw new InvalidOperationException("یکی از فیلدهای ضروری نگاشت انتخاب نشده است.");
+    }
+
+    private static string? GetOptionalColumn(ComboBox picker)
+    {
+        var column = (picker.SelectedItem as ColumnChoice)?.Name;
+        return string.IsNullOrWhiteSpace(column) ? null : column;
     }
 
     private static decimal GetMultiplier(ComboBox picker)
