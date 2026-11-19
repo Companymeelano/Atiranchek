@@ -195,7 +195,7 @@ jobs:
             '--repo', $env:GITHUB_REPOSITORY,
             '--target', $env:GITHUB_SHA,
             '--title', "MEELANO Executive Console $appVersion - Windows x64 downloads",
-            '--notes', "Windows 10 version 1809 (build 17763) or newer / Windows 11 x64 downloads. The release includes a per-user installer and a portable self-contained EXE; no separate .NET runtime is required. Both include optional direct SQL Server read-only import: users enter the host, port and credentials at runtime; no credentials or connection string are embedded or saved. TLS certificate validation is mandatory; schema mapping is user-confirmed. Demo data remains the offline fallback. Downloads are not code-signed. Do not use privileged SQL logins; configure a dedicated least-privilege account and validate the target schema before operational use.",
+            '--notes', "Windows 10 version 1809 (build 17763) or newer / Windows 11 x64 downloads. The release includes a per-user installer and a portable self-contained EXE; no separate .NET runtime is required. Both include optional direct SQL Server read-only import: users enter the host, port and credentials at runtime; no credentials or connection string are embedded or saved. Test-only SQL connections encrypt traffic but do not validate server certificates and are vulnerable to server impersonation; use only on an isolated test network with test data and accounts. Schema mapping is user-confirmed. Demo data remains the offline fallback. Downloads are not code-signed. Do not use privileged SQL logins; configure a dedicated least-privilege account and validate the target schema before operational use.",
             '--prerelease'
           )
           & gh @releaseArgs

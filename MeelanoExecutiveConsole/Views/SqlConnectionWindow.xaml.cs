@@ -92,7 +92,7 @@ public partial class SqlConnectionWindow : Window
         ServerResultsCombo.ItemsSource = results;
         ScanStatusText.Text = results.Count == 0
             ? "پاسخ SQL پیدا نشد؛ فایروال، پورت و محدوده را بررسی کنید یا سرور را دستی وارد کنید."
-            : $"{PersianFormatting.Number(results.Count)} پاسخ TDS پیدا شد؛ سرور را انتخاب و نام گواهی را مستقل بررسی کنید.";
+            : $"{PersianFormatting.Number(results.Count)} پاسخ TDS پیدا شد؛ سرور آزمایشی موردنظر را انتخاب کنید.";
     }
 
     private void ServerResults_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -100,8 +100,6 @@ public partial class SqlConnectionWindow : Window
         if (ServerResultsCombo.SelectedItem is not SqlServerDiscoveryService.Server server) return;
         ServerHostBox.Text = server.Address;
         PortBox.Text = server.Port.ToString(CultureInfo.InvariantCulture);
-        // Never reuse an expected certificate name from a different endpoint.
-        CertificateHostBox.Clear();
     }
 
     private async void Connect_Click(object sender, RoutedEventArgs e)
@@ -517,8 +515,7 @@ public partial class SqlConnectionWindow : Window
             port,
             useWindowsAuthentication,
             UserNameBox.Text,
-            PasswordInput.Password,
-            CertificateHostBox.Text);
+            PasswordInput.Password);
     }
 
     private string GetSelectedDatabase() => DatabaseCombo.SelectedItem as string

@@ -59,21 +59,8 @@
                                     </WrapPanel>
                                     <TextBlock x:Name="ScanStatusText" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,0,4" />
                                     <ComboBox x:Name="ServerResultsCombo" DisplayMemberPath="Display" SelectionChanged="ServerResults_SelectionChanged" />
-                                    <TextBlock Text="IP داخلی دستگاه در فهرست آداپتورها و IP اختصاصی سرور در نتایج نمایش داده می‌شود. IP عمومی شناسایی نمی‌شود. پاسخ TDS به‌تنهایی تأیید هویت سرور نیست؛ گواهی هنگام اتصال بررسی می‌شود."
+                                    <TextBlock Text="IP داخلی دستگاه در فهرست آداپتورها و IP اختصاصی سرور در نتایج نمایش داده می‌شود. IP عمومی شناسایی نمی‌شود. پاسخ TDS هویت سرور را تأیید نمی‌کند. این حالت فقط برای شبکهٔ آزمایشی قابل‌اعتماد است؛ از اطلاعات واقعی استفاده نکنید."
                                                Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
-                                </StackPanel>
-                            </Border>
-
-                            <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
-                                    CornerRadius="16" Padding="15" Margin="0,0,0,12">
-                                <StackPanel>
-                                    <TextBlock Text="امنیت گواهی SQL Server" FontSize="14" FontWeight="Bold" />
-                                    <TextBlock Text="TLS و اعتبارسنجی گواهی الزامی است. هنگام اتصال با IP، در صورت نیاز نام DNS مورد انتظار را که مدیر سرور مستقل از نتایج جستجو تأیید کرده وارد کنید؛ نام باید با گواهی مطابقت داشته باشد. این گزینه اعتماد به گواهی ناشناس را فعال نمی‌کند."
-                                               Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,5,0,7" />
-                                    <TextBlock Text="نام مورد انتظار در گواهی · اختیاری" Foreground="{DynamicResource TextMutedBrush}" />
-                                    <TextBox x:Name="CertificateHostBox" FlowDirection="LeftToRight" TextChanged="ConnectionField_Changed" ToolTip="مثال: sql.example.local" />
-                                    <TextBlock Text="خطای ریشه یا زنجیره: نصب گواهی معتبر و زنجیرهٔ کامل و اعتماد به CA در ویندوز. خطای نام: DNS منطبق با گواهی. گواهی منقضی: تمدید و بررسی ساعت سیستم. هیچ گواهی به‌صورت خودکار نصب یا مورد اعتماد قرار نمی‌گیرد."
-                                               Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,7,0,0" />
                                 </StackPanel>
                             </Border>
 

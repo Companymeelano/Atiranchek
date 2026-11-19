@@ -20,10 +20,9 @@ internal static class Program
             ("Persian display uses grouped digits, toman and Solar Hijri dates", PersianFormattingDisplay),
             ("Jalali date parsing handles Persian digits and Gregorian SQL dates", PersianDateParsing),
             ("Direct SQL endpoint validation rejects malformed hosts and ports", SqlEndpointValidation),
-            ("SQL TLS certificate failures provide precise safe diagnostics", SqlCertificateFailureDiagnosis),
             ("SQL discovery stays bounded and validates TDS responses", SqlDiscovery),
             ("SQL discovery handles fragmented prelogin responses", SqlDiscoveryNetwork),
-            ("SQL certificate hostname never disables TLS validation", SqlCertificateSettings),
+            ("SQL test mode encrypts without requiring certificate validation", SqlTestConnectionSettings),
             ("SQL source-value keys preserve exact values and distinguish NULL", SqlValueKeys),
             ("Live SQL snapshots cannot mutate check status", LiveSqlIsReadOnly),
             ("Persian search normalizes keyboard and digit variants", PersianSearchNormalization),
@@ -181,25 +180,6 @@ internal static class Program
         Throws<ArgumentException>(() => new SqlServerConnectionSettings("localhost", 1433, false, "report_reader", null), "empty SQL password rejected");
     }
 
-    private static void SqlCertificateFailureDiagnosis()
-    {
-        var untrustedRoot = SqlServerErrorMessages.ToPersian(new InvalidOperationException(
-            "Connection failed.",
-            new System.Runtime.InteropServices.ExternalException("TLS handshake failed.", -2146893019)));
-        Contains("0x80090325", untrustedRoot, "wrapped certificate-chain HRESULT is identified");
-        Contains("این خطا از رمز SQL نیست", untrustedRoot, "certificate error is distinguished from credential failure");
-        Contains("اعتبارسنجی گواهی را غیرفعال نکنید", untrustedRoot, "diagnostic preserves certificate validation");
-
-        var messageOnlyStatus = SqlServerErrorMessages.ToPersian(new Exception(
-            "The certificate chain was issued by an authority that is not trusted."));
-        Contains("0x80090325", messageOnlyStatus, "standard SQL TLS certificate-chain message is identified");
-
-        var nameMismatch = SqlServerErrorMessages.ToPersian(
-            new System.Runtime.InteropServices.ExternalException("TLS handshake failed.", -2146893022));
-        Contains("SAN", nameMismatch, "certificate name mismatch explains the DNS requirement");
-        Contains("غیرفعال نکنید", nameMismatch, "name mismatch diagnostic remains fail-closed");
-    }
-
     private static void SqlDiscovery()
     {
         var hosts = SqlServerDiscoveryService.EnumerateTargets("10.20.35.100", 16);
@@ -248,19 +228,21 @@ internal static class Program
         Equal(port, results[0].Port, "port retained");
     }
 
-    private static void SqlCertificateSettings()
+    private static void SqlTestConnectionSettings()
     {
-        var settings = new SqlServerConnectionSettings("192.168.1.9", 1433, true, null, null, "sql.example.local");
-        Equal("sql.example.local", settings.CertificateHostName, "expected certificate name");
-        Throws<ArgumentException>(() => new SqlServerConnectionSettings("localhost", 1433, true, null, null, "sql;TrustServerCertificate=true"), "injected certificate name rejected");
-        var method = typeof(SqlServerConnectionSettings).GetMethod("CreateConnection", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
-        using var connection = (Microsoft.Data.SqlClient.SqlConnection)method.Invoke(settings, new object[] { "master" })!;
-        var builder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connection.ConnectionString);
-        False(builder.TrustServerCertificate, "certificate trust is not bypassed");
-        Equal("sql.example.local", builder.HostNameInCertificate, "expected certificate hostname set");
-        Equal(Microsoft.Data.SqlClient.SqlConnectionEncryptOption.Mandatory, builder.Encrypt, "encryption mandatory");
-        var expired = SqlServerErrorMessages.ToPersian(new System.Runtime.InteropServices.ExternalException("TLS", unchecked((int)0x800B0101)));
-        Contains("دورهٔ اعتبار", expired, "expired certificate diagnosis");
+        foreach (var windowsAuth in new[] { true, false })
+        {
+            var settings = new SqlServerConnectionSettings("192.168.1.9", 1433, windowsAuth, "reader", "test-password");
+            var method = typeof(SqlServerConnectionSettings).GetMethod("CreateConnection", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
+            using var connection = (Microsoft.Data.SqlClient.SqlConnection)method.Invoke(settings, new object[] { "master" })!;
+            var builder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connection.ConnectionString);
+            True(builder.TrustServerCertificate, "test mode does not require server certificate validation");
+            Equal(Microsoft.Data.SqlClient.SqlConnectionEncryptOption.Mandatory, builder.Encrypt, "traffic remains encrypted");
+            Equal(windowsAuth, builder.IntegratedSecurity, "selected authentication retained");
+            Equal("master", builder.InitialCatalog, "requested database retained");
+            Equal(System.Data.ApplicationIntent.ReadOnly, builder.ApplicationIntent, "read-only routing retained");
+            False(builder.PersistSecurityInfo, "credential persistence disabled");
+        }
     }
 
     private static void SqlValueKeys()
