@@ -131,6 +131,20 @@ public partial class MainWindow : Window
         ExportCsv(dialog.FileName, content);
     }
 
+    private void TreasuryCsv_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = CreateCsvSaveDialog("meelano-treasury-maturity.csv");
+        if (dialog.ShowDialog() != true) return;
+        var rows = vm.TreasuryBuckets.Select(bucket => new[]
+        {
+            CsvCell.Text(vm.TreasuryAsOf), CsvCell.Text(vm.DataSourceDescription), CsvCell.Text(bucket.Label),
+            CsvCell.Number(bucket.IncomingCount), CsvCell.Number(bucket.Incoming),
+            CsvCell.Number(bucket.OutgoingCount), CsvCell.Number(bucket.Outgoing), CsvCell.Number(bucket.Net)
+        });
+        ExportCsv(dialog.FileName, CsvFormatter.Build(
+            ["تاریخ مبنا", "منبع", "بازه سررسید چک در انتظار", "تعداد دریافتی", "دریافتی (تومان)", "تعداد پرداختی", "پرداختی (تومان)", "خالص (تومان)"], rows));
+    }
+
     private void SalesCsv_Click(object sender, RoutedEventArgs e)
     {
         var dialog = CreateCsvSaveDialog("meelano-sales.csv");

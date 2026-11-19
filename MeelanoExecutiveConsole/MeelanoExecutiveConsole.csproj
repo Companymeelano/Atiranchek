@@ -10,12 +10,12 @@
     <AssemblyName>MeelanoExecutiveConsole</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Resources\meelano.ico</ApplicationIcon>
-    <Version>1.1.5</Version>
-    <AssemblyVersion>1.1.5.0</AssemblyVersion>
-    <FileVersion>1.1.5.0</FileVersion>
+    <Version>1.1.6</Version>
+    <AssemblyVersion>1.1.6.0</AssemblyVersion>
+    <FileVersion>1.1.6.0</FileVersion>
     <Company>MEELANO</Company>
     <Product>MEELANO Executive Console</Product>
-    <Description>Persian RTL executive dashboard with secure, read-only SQL Server import.</Description>
+    <Description>Persian RTL executive dashboard with test-only, read-only SQL Server import.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\MeelanoExecutiveConsole.Core\MeelanoExecutiveConsole.Core.csproj" />

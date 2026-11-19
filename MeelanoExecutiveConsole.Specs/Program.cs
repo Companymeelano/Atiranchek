@@ -14,6 +14,8 @@ internal static class Program
         {
             ("Seven-day cash totals use exactly seven inclusive calendar days", SevenDayTotals),
             ("Thirty-day radar includes overdue items on day zero", OverdueRadar),
+            ("Treasury buckets have precise inclusive boundaries and coverage", TreasuryBuckets),
+            ("Treasury status changes refresh the report", TreasuryRefresh),
             ("Scenario shifts only selected pending incoming checks", ScenarioShift),
             ("Status transitions enforce check type and terminal states", StatusTransitions),
             ("Weighted date excludes completed checks and rounds to a whole day", WeightedDate),
@@ -92,6 +94,44 @@ internal static class Program
         Equal(-50m, radar[0].Balance, "day-zero projected balance");
         Equal(10m, radar[29].Incoming, "last in-range day");
         Equal(-40m, radar[29].Balance, "last in-range balance");
+    }
+
+    private static void TreasuryBuckets()
+    {
+        int[] offsets = [-91, -90, -61, -60, -31, -30, -1, 0, 1, 7, 8, 30, 31];
+        var checks = offsets.Select((days, i) => Check($"I{i}", CheckKind.دریافتی, 10, Today.AddDays(days))).ToList();
+        checks.Add(Check("OUT", CheckKind.پرداختی, 20, Today.AddDays(30)));
+        checks.Add(Check("OUTLATE", CheckKind.پرداختی, 5, Today.AddDays(-1)));
+        checks.Add(Check("RETURNED-IN", CheckKind.دریافتی, 15, Today, CheckStatuses.Returned));
+        checks.Add(Check("RETURNED-OUT", CheckKind.پرداختی, 25, Today, CheckStatuses.Returned));
+        checks.Add(Check("SUSPENDED", CheckKind.دریافتی, 500, Today, CheckStatuses.Suspended));
+        checks.Add(Check("COLLECTED", CheckKind.دریافتی, 500, Today, CheckStatuses.Collected));
+        var report = TreasuryAnalysisService.Analyze(checks, Today.AddHours(14));
+        Equal(Today, report.AsOf, "date normalized");
+        Equal(8, report.Buckets.Count, "bucket count");
+        int[] expected = [2, 2, 2, 1, 1, 2, 2, 1];
+        for (var i = 0; i < expected.Length; i++) Equal(expected[i], report.Buckets[i].IncomingCount, $"bucket {i} boundary count");
+        Equal(70m, report.OverdueIncoming, "overdue not including today");
+        Equal(5m, report.OverdueOutgoing, "overdue outgoing");
+        Equal(15m, report.ReturnedIncoming, "returned incoming separate");
+        Equal(25m, report.ReturnedOutgoing, "returned outgoing separate");
+        Equal(120m, report.IncomingThrough30, "overdue + today through day 30");
+        Equal(25m, report.OutgoingThrough30, "outgoing through 30");
+        Equal<decimal?>(480m, report.CoveragePercent, "coverage formula");
+        Equal(0m, report.Buckets[6].Net, "net per bucket");
+        var empty = TreasuryAnalysisService.Analyze(Array.Empty<CheckItem>(), Today);
+        Equal<decimal?>(null, empty.CoveragePercent, "zero denominator is undefined");
+        Equal(0m, empty.OverdueIncoming, "empty report zero");
+    }
+
+    private static void TreasuryRefresh()
+    {
+        var check = Check("DUE", CheckKind.دریافتی, 100, Today.AddDays(-1));
+        var vm = new MainViewModel(new StubRepository([check]), () => Today);
+        Equal(100m, vm.TreasuryBuckets[0].Incoming, "initial amount");
+        vm.UpdateSelection([check]);
+        Equal(1, vm.ApplySelectedStatus(CheckStatuses.Collected).Updated, "demo status changed");
+        Equal(0m, vm.TreasuryBuckets[0].Incoming, "report recalculated after change");
     }
 
     private static void ScenarioShift()

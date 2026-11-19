@@ -10,8 +10,8 @@
         <SolidColorBrush x:Key="PanelHoverBrush" Color="#1B3032" />
         <SolidColorBrush x:Key="StrokeBrush" Color="#263B3D" />
         <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F0F1EA" />
-        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#BAC6C1" />
-        <SolidColorBrush x:Key="TextMutedBrush" Color="#80928D" />
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#C4D1CB" />
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#A6B9B1" />
         <SolidColorBrush x:Key="GoldBrush" Color="#D8B66C" />
         <SolidColorBrush x:Key="GoldLightBrush" Color="#F1D995" />
         <SolidColorBrush x:Key="GreenBrush" Color="#68C9A2" />
@@ -22,7 +22,7 @@
         <SolidColorBrush x:Key="HeaderSurfaceBrush" Color="#0D191B" />
         <SolidColorBrush x:Key="SurfaceAltBrush" Color="#111F20" />
         <SolidColorBrush x:Key="InsetSurfaceBrush" Color="#0B1719" />
-        <SolidColorBrush x:Key="InsetBorderBrush" Color="#203235" />
+        <SolidColorBrush x:Key="InsetBorderBrush" Color="#304648" />
         <SolidColorBrush x:Key="BadgeSurfaceBrush" Color="#172624" />
         <SolidColorBrush x:Key="AccentBorderBrush" Color="#425543" />
         <SolidColorBrush x:Key="BrandSurfaceBrush" Color="#20352E" />
@@ -32,10 +32,10 @@
         <SolidColorBrush x:Key="NavigationHoverBrush" Color="#142427" />
         <SolidColorBrush x:Key="SelectionSurfaceBrush" Color="#1A2C2B" />
         <SolidColorBrush x:Key="SelectionBorderBrush" Color="#39534A" />
-        <SolidColorBrush x:Key="TableHeaderBrush" Color="#142326" />
+        <SolidColorBrush x:Key="TableHeaderBrush" Color="#1A2D30" />
         <SolidColorBrush x:Key="TableAlternateBrush" Color="#132225" />
-        <SolidColorBrush x:Key="GridLineBrush" Color="#203235" />
-        <SolidColorBrush x:Key="DataGridSelectionBrush" Color="#253C37" />
+        <SolidColorBrush x:Key="GridLineBrush" Color="#304648" />
+        <SolidColorBrush x:Key="DataGridSelectionBrush" Color="#2C5046" />
         <SolidColorBrush x:Key="InputBackgroundBrush" Color="#0B1719" />
         <SolidColorBrush x:Key="InputSelectionBrush" Color="#526D57" />
         <SolidColorBrush x:Key="NotificationBrush" Color="#202D27" />
@@ -95,6 +95,7 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource PanelHoverBrush}" />
                                 <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource GoldBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Chrome" Property="Opacity" Value="0.82" />
@@ -104,7 +105,7 @@
                                 <Setter TargetName="Chrome" Property="BorderThickness" Value="2" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="Chrome" Property="Opacity" Value="0.45" />
+                                <Setter TargetName="Chrome" Property="Opacity" Value="0.6" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -409,7 +410,7 @@
 
         <Style TargetType="{x:Type DataGridColumnHeader}">
             <Setter Property="Background" Value="{DynamicResource TableHeaderBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource StrokeBrush}" />
             <Setter Property="BorderThickness" Value="0,0,0,1" />
             <Setter Property="Padding" Value="12,11" />

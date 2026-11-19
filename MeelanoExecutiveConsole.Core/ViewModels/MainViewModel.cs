@@ -17,6 +17,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private string selectedCheckType = AllTypes;
     private string selectedStatus = AllStatuses;
     private double shiftDays;
+    private TreasuryAnalysisService.Report treasury = null!;
 
     public MainViewModel(IRepository? repository = null, Func<DateTime>? todayProvider = null)
     {
@@ -36,6 +37,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         FilteredChecks = new ObservableCollection<CheckItem>();
         UpcomingChecks = new ObservableCollection<CheckItem>();
         Radar = new ObservableCollection<RadarPoint>();
+        TreasuryBuckets = new ObservableCollection<TreasuryAnalysisService.Bucket>();
         CheckTypeFilters = new ObservableCollection<string>(
             [AllTypes, CheckKind.دریافتی.ToString(), CheckKind.پرداختی.ToString()]);
         StatusFilters = new ObservableCollection<string>([AllStatuses, .. CheckStatuses.All]);
@@ -44,6 +46,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         Refresh();
         RefreshUpcomingChecks();
         RefreshForecast();
+        RefreshTreasury();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -54,6 +57,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<CheckItem> FilteredChecks { get; }
     public ObservableCollection<CheckItem> UpcomingChecks { get; }
     public ObservableCollection<RadarPoint> Radar { get; }
+    public ObservableCollection<TreasuryAnalysisService.Bucket> TreasuryBuckets { get; }
     public ObservableCollection<string> CheckTypeFilters { get; }
     public ObservableCollection<string> StatusFilters { get; }
 
@@ -198,6 +202,16 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    public string TreasuryAsOf => $"مبنای محاسبه: {PersianFormatting.PersianDate(treasury.AsOf)}";
+    public string OverdueIncoming => PersianFormatting.Money(treasury.OverdueIncoming);
+    public string OverdueOutgoing => PersianFormatting.Money(treasury.OverdueOutgoing);
+    public string ReturnedIncoming => PersianFormatting.Money(treasury.ReturnedIncoming);
+    public string ReturnedOutgoing => PersianFormatting.Money(treasury.ReturnedOutgoing);
+    public string TreasuryIncoming30 => PersianFormatting.Money(treasury.IncomingThrough30);
+    public string TreasuryOutgoing30 => PersianFormatting.Money(treasury.OutgoingThrough30);
+    public string TreasuryCoverage => treasury.CoveragePercent is decimal percent
+        ? $"{PersianFormatting.Number(decimal.Round(percent, 0, MidpointRounding.AwayFromZero))}٪" : "—";
+
     public string SalesTotal => PersianFormatting.Money(Sales.Sum(sale => sale.Amount));
     public string SalesProfit => PersianFormatting.Money(Sales.Sum(sale => sale.Profit));
     public string TopCustomer => TopName(Sales.GroupBy(sale => sale.Customer), group => group.Sum(sale => sale.Amount));
@@ -235,6 +249,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             Refresh();
             RefreshUpcomingChecks();
             RefreshForecast();
+            RefreshTreasury();
             NotifySelectionSummary();
             NotifyDashboard();
         }
@@ -309,6 +324,16 @@ public sealed class MainViewModel : INotifyPropertyChanged
         foreach (var point in service.BuildRadar(selectedChecks, (int)ShiftDays))
             Radar.Add(point);
         OnPropertyChanged(nameof(SimulatedGap));
+    }
+
+    private void RefreshTreasury()
+    {
+        treasury = TreasuryAnalysisService.Analyze(service.Checks, service.Today);
+        TreasuryBuckets.Clear();
+        foreach (var bucket in treasury.Buckets) TreasuryBuckets.Add(bucket);
+        foreach (var name in new[] { nameof(TreasuryAsOf), nameof(OverdueIncoming), nameof(OverdueOutgoing),
+            nameof(ReturnedIncoming), nameof(ReturnedOutgoing), nameof(TreasuryIncoming30), nameof(TreasuryOutgoing30), nameof(TreasuryCoverage) })
+            OnPropertyChanged(name);
     }
 
     private void NotifySelectionSummary()
