@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Data;
 using System.Globalization;
 using System.Net;
@@ -702,27 +703,63 @@ public static class SqlServerErrorMessages
 {
     public static string ToPersian(Exception exception)
     {
-        if (exception is InvalidOperationException or ArgumentException)
-            return exception.Message;
+        ArgumentNullException.ThrowIfNull(exception);
 
-        if (exception is SqlException sqlException)
+        SqlException? sqlException = null;
+        for (Exception? current = exception; current is not null; current = current.InnerException)
         {
-            return sqlException.Number switch
-            {
-                18456 => "ورود SQL ناموفق است. حساب کم‌دسترسی، نام کاربری و رمز واردشده را بررسی کنید.",
-                4060 or 916 => "دسترسی به پایگاه داده رد شد؛ مجوز CONNECT و SELECT حساب را بررسی کنید.",
-                -2 => "مهلت اتصال/خواندن تمام شد؛ IP، پورت، فایروال و در دسترس بودن SQL Server را بررسی کنید.",
-                53 or 40 or 10060 or 10061 => "به SQL Server وصل نشد؛ IP، پورت ۵۰۵۰/۱۴۳۳، فایروال و port forwarding را بررسی کنید.",
-                _ => $"SQL Server عملیات را نپذیرفت (کد خطا {sqlException.Number.ToString(CultureInfo.InvariantCulture)}). تنظیمات اتصال و دسترسی schema را بررسی کنید."
-            };
+            var certificateError = GetCertificateErrorCode(current);
+            if (certificateError is not null)
+                return ToPersianSqlError(certificateError.Value);
+
+            if (current is SqlException currentSqlException)
+                sqlException ??= currentSqlException;
         }
 
+        if (sqlException is not null)
+            return ToPersianSqlError(sqlException.Number);
+        if (exception is InvalidOperationException or ArgumentException)
+            return exception.Message;
         if (exception is OperationCanceledException)
             return "عملیات لغو شد.";
         if (exception is TimeoutException)
             return "مهلت عملیات تمام شد؛ شبکه و پاسخ‌گویی SQL Server را بررسی کنید.";
         return "عملیات پایگاه داده انجام نشد. تنظیمات اتصال و مجوز فقط‌خواندنی را بررسی کنید.";
     }
+
+    private static int? GetCertificateErrorCode(Exception exception)
+    {
+        const int untrustedRoot = -2146893019; // 0x80090325 / SEC_E_UNTRUSTED_ROOT
+        const int certificateNameMismatch = -2146893022;
+
+        if (exception.HResult is untrustedRoot or certificateNameMismatch)
+            return exception.HResult;
+        if (exception is Win32Exception win32Exception
+            && win32Exception.NativeErrorCode is untrustedRoot or certificateNameMismatch)
+            return win32Exception.NativeErrorCode;
+
+        // Some SQL client versions surface the native TLS status only in the message.
+        if (exception.Message.Contains("0x80090325", StringComparison.OrdinalIgnoreCase)
+            || exception.Message.Contains(untrustedRoot.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+            || exception.Message.Contains("certificate chain was issued by an authority that is not trusted", StringComparison.OrdinalIgnoreCase))
+            return untrustedRoot;
+        if (exception.Message.Contains("0x80090322", StringComparison.OrdinalIgnoreCase)
+            || exception.Message.Contains(certificateNameMismatch.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal))
+            return certificateNameMismatch;
+
+        return null;
+    }
+
+    private static string ToPersianSqlError(int errorNumber) => errorNumber switch
+    {
+        18456 => "ورود SQL ناموفق است. حساب کم‌دسترسی، نام کاربری و رمز واردشده را بررسی کنید.",
+        -2146893019 => "گواهی SQL Server به مرجع مورد اعتماد ویندوز متصل نیست (0x80090325؛ ریشه یا زنجیرهٔ گواهی مورد اعتماد نیست). این خطا از رمز SQL نیست. از مدیر سرور بخواهید گواهی معتبر با زنجیرهٔ کامل نصب کند و CA را در مخزن اعتماد ویندوز قرار دهد. اگر با IP وصل می‌شوید، از نام DNS موجود در SAN گواهی استفاده کنید. اعتبارسنجی گواهی را غیرفعال نکنید.",
+        -2146893022 => "نام میزبان واردشده با نام موجود در گواهی SQL Server مطابقت ندارد. از نام DNS موجود در SAN گواهی استفاده کنید؛ اعتبارسنجی گواهی را غیرفعال نکنید.",
+        4060 or 916 => "دسترسی به پایگاه داده رد شد؛ مجوز CONNECT و SELECT حساب را بررسی کنید.",
+        -2 => "مهلت اتصال/خواندن تمام شد؛ IP، پورت، فایروال و در دسترس بودن SQL Server را بررسی کنید.",
+        53 or 40 or 10060 or 10061 => "به SQL Server وصل نشد؛ IP، پورت ۵۰۵۰/۱۴۳۳، فایروال و port forwarding را بررسی کنید.",
+        _ => $"SQL Server عملیات را نپذیرفت (کد خطا {errorNumber.ToString(CultureInfo.InvariantCulture)}). تنظیمات اتصال و دسترسی schema را بررسی کنید."
+    };
 }
 
 /// <summary>Parses SQL DATE/DATETIME values as Gregorian and recognizable Persian text as Jalali.</summary>

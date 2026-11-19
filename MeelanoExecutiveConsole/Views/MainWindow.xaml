@@ -115,7 +115,7 @@
                             </StackPanel>
                             <TextBlock Text="{Binding DataSourceDescription}"
                                        Foreground="{DynamicResource TextMutedBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" />
-                            <TextBlock Text="نسخهٔ ۱.۱.۱ · مستقیم/نمایشی" Foreground="{DynamicResource GoldLightBrush}"
+                            <TextBlock Text="نسخهٔ ۱.۱.۲ · مستقیم/نمایشی" Foreground="{DynamicResource GoldLightBrush}"
                                        FontSize="10" Margin="0,8,0,0" />
                         </StackPanel>
                     </Border>

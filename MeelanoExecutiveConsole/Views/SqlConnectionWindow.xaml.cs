@@ -543,33 +543,40 @@ public partial class SqlConnectionWindow : Window
         if (activeOperation is not null)
             return false;
 
-        activeOperation = new CancellationTokenSource();
+        var operation = new CancellationTokenSource();
+        activeOperation = operation;
         ShowLoading();
-        var token = activeOperation.Token;
         var progress = new Progress<SqlServerProgress>(UpdateLoading);
+        var succeeded = false;
+        string? errorMessage = null;
         try
         {
-            await action(progress, token);
-            return true;
+            await action(progress, operation.Token);
+            succeeded = true;
         }
         catch (OperationCanceledException)
         {
             ConnectionStatusText.Text = "عملیات لغو شد.";
-            return false;
         }
         catch (Exception exception)
         {
-            var message = SqlServerErrorMessages.ToPersian(exception);
-            ConnectionStatusText.Text = message;
-            ShowError(message);
-            return false;
+            errorMessage = SqlServerErrorMessages.ToPersian(exception);
+            ConnectionStatusText.Text = errorMessage;
         }
         finally
         {
+            // Close the progress overlay before opening a modal error dialog; otherwise
+            // the dimmed loading screen remains visible behind the MessageBox.
             HideLoading();
-            activeOperation.Dispose();
-            activeOperation = null;
+            if (ReferenceEquals(activeOperation, operation))
+                activeOperation = null;
+            operation.Dispose();
         }
+
+        if (errorMessage is not null)
+            ShowError(errorMessage);
+
+        return succeeded;
     }
 
     private void ShowLoading()

@@ -20,6 +20,7 @@ internal static class Program
             ("Persian display uses grouped digits, toman and Solar Hijri dates", PersianFormattingDisplay),
             ("Jalali date parsing handles Persian digits and Gregorian SQL dates", PersianDateParsing),
             ("Direct SQL endpoint validation rejects malformed hosts and ports", SqlEndpointValidation),
+            ("SQL TLS certificate failures provide precise safe diagnostics", SqlCertificateFailureDiagnosis),
             ("SQL source-value keys preserve exact values and distinguish NULL", SqlValueKeys),
             ("Live SQL snapshots cannot mutate check status", LiveSqlIsReadOnly),
             ("Persian search normalizes keyboard and digit variants", PersianSearchNormalization),
@@ -175,6 +176,25 @@ internal static class Program
         Throws<ArgumentException>(() => new SqlServerConnectionSettings("localhost;TrustServerCertificate=True", 1433, true, null, null), "connection-string fragment rejected as host");
         Throws<ArgumentException>(() => new SqlServerConnectionSettings("localhost", 65536, true, null, null), "out-of-range port rejected");
         Throws<ArgumentException>(() => new SqlServerConnectionSettings("localhost", 1433, false, "report_reader", null), "empty SQL password rejected");
+    }
+
+    private static void SqlCertificateFailureDiagnosis()
+    {
+        var untrustedRoot = SqlServerErrorMessages.ToPersian(new InvalidOperationException(
+            "Connection failed.",
+            new System.Runtime.InteropServices.ExternalException("TLS handshake failed.", -2146893019)));
+        Contains("0x80090325", untrustedRoot, "wrapped certificate-chain HRESULT is identified");
+        Contains("این خطا از رمز SQL نیست", untrustedRoot, "certificate error is distinguished from credential failure");
+        Contains("اعتبارسنجی گواهی را غیرفعال نکنید", untrustedRoot, "diagnostic preserves certificate validation");
+
+        var messageOnlyStatus = SqlServerErrorMessages.ToPersian(new Exception(
+            "The certificate chain was issued by an authority that is not trusted."));
+        Contains("0x80090325", messageOnlyStatus, "standard SQL TLS certificate-chain message is identified");
+
+        var nameMismatch = SqlServerErrorMessages.ToPersian(
+            new System.Runtime.InteropServices.ExternalException("TLS handshake failed.", -2146893022));
+        Contains("SAN", nameMismatch, "certificate name mismatch explains the DNS requirement");
+        Contains("غیرفعال نکنید", nameMismatch, "name mismatch diagnostic remains fail-closed");
     }
 
     private static void SqlValueKeys()
