@@ -22,7 +22,8 @@ public sealed class SqlServerConnectionSettings
         int port,
         bool useWindowsAuthentication,
         string? userName,
-        string? password)
+        string? password,
+        string? certificateHostName = null)
     {
         ServerHost = NormalizeHost(serverHost);
         if (port is < 1 or > 65535)
@@ -32,6 +33,9 @@ public sealed class SqlServerConnectionSettings
         UseWindowsAuthentication = useWindowsAuthentication;
         this.userName = useWindowsAuthentication ? null : userName?.Trim();
         this.password = useWindowsAuthentication ? null : password;
+        CertificateHostName = string.IsNullOrWhiteSpace(certificateHostName)
+            ? null
+            : NormalizeHost(certificateHostName);
 
         if (!useWindowsAuthentication && (string.IsNullOrWhiteSpace(this.userName) || string.IsNullOrEmpty(this.password)))
             throw new ArgumentException("برای ورود SQL، نام کاربری و رمز را در همین پنجره وارد کنید.");
@@ -40,6 +44,13 @@ public sealed class SqlServerConnectionSettings
     public string ServerHost { get; }
     public int Port { get; }
     public bool UseWindowsAuthentication { get; }
+
+    /// <summary>
+    /// Expected DNS/IP name in the SQL Server certificate (HostNameInCertificate).
+    /// Use when connecting via IP but the certificate only contains a DNS SAN.
+    /// Null means validate against <see cref="ServerHost"/>.
+    /// </summary>
+    public string? CertificateHostName { get; }
 
     internal SqlConnection CreateConnection(string database)
     {
@@ -62,6 +73,8 @@ public sealed class SqlServerConnectionSettings
             ApplicationIntent = ApplicationIntent.ReadOnly,
             ConnectRetryCount = 0
         };
+        if (!string.IsNullOrWhiteSpace(CertificateHostName))
+            builder.HostNameInCertificate = CertificateHostName;
 
         if (!UseWindowsAuthentication)
         {
@@ -731,11 +744,14 @@ public static class SqlServerErrorMessages
     {
         const int untrustedRoot = -2146893019; // 0x80090325 / SEC_E_UNTRUSTED_ROOT
         const int certificateNameMismatch = -2146893022;
-
-        if (exception.HResult is untrustedRoot or certificateNameMismatch)
-            return exception.HResult;
-        if (exception is Win32Exception win32Exception
-            && win32Exception.NativeErrorCode is untrustedRoot or certificateNameMismatch)
+        // Schannel and Windows certificate trust HRESULTs. Do not infer trust from text or discovery.
+        static bool IsCertificateCode(int code) => code is
+            unchecked((int)0x80090325) or unchecked((int)0x80090322) or
+            unchecked((int)0x80090328) or unchecked((int)0x800B0101) or
+            unchecked((int)0x800B0109) or unchecked((int)0x800B010A) or
+            unchecked((int)0x800B010C) or unchecked((int)0x800B010F);
+        if (IsCertificateCode(exception.HResult)) return exception.HResult;
+        if (exception is Win32Exception win32Exception && IsCertificateCode(win32Exception.NativeErrorCode))
             return win32Exception.NativeErrorCode;
 
         // Some SQL client versions surface the native TLS status only in the message.
@@ -755,6 +771,10 @@ public static class SqlServerErrorMessages
         18456 => "ورود SQL ناموفق است. حساب کم‌دسترسی، نام کاربری و رمز واردشده را بررسی کنید.",
         -2146893019 => "گواهی SQL Server به مرجع مورد اعتماد ویندوز متصل نیست (0x80090325؛ ریشه یا زنجیرهٔ گواهی مورد اعتماد نیست). این خطا از رمز SQL نیست. از مدیر سرور بخواهید گواهی معتبر با زنجیرهٔ کامل نصب کند و CA را در مخزن اعتماد ویندوز قرار دهد. اگر با IP وصل می‌شوید، از نام DNS موجود در SAN گواهی استفاده کنید. اعتبارسنجی گواهی را غیرفعال نکنید.",
         -2146893022 => "نام میزبان واردشده با نام موجود در گواهی SQL Server مطابقت ندارد. از نام DNS موجود در SAN گواهی استفاده کنید؛ اعتبارسنجی گواهی را غیرفعال نکنید.",
+        unchecked((int)0x800B0109) or unchecked((int)0x800B010A) => "زنجیرهٔ گواهی SQL Server ناقص یا ریشهٔ آن مورد اعتماد ویندوز نیست. از مدیر سرور نصب زنجیرهٔ کامل و CA معتبر را بخواهید؛ اعتبارسنجی را غیرفعال نکنید.",
+        unchecked((int)0x800B010F) => "نام سرور با گواهی مطابقت ندارد؛ نام DNS تأییدشده و منطبق با گواهی را وارد کنید؛ اعتبارسنجی را غیرفعال نکنید.",
+        unchecked((int)0x80090328) or unchecked((int)0x800B0101) => "گواهی SQL Server خارج از دورهٔ اعتبار است. تاریخ و ساعت کلاینت و سرور و تمدید گواهی را بررسی کنید؛ اعتبارسنجی را غیرفعال نکنید.",
+        unchecked((int)0x800B010C) => "گواهی SQL Server ابطال شده است؛ از مدیر سرور گواهی معتبر جدید بخواهید؛ اعتبارسنجی را غیرفعال نکنید.",
         4060 or 916 => "دسترسی به پایگاه داده رد شد؛ مجوز CONNECT و SELECT حساب را بررسی کنید.",
         -2 => "مهلت اتصال/خواندن تمام شد؛ IP، پورت، فایروال و در دسترس بودن SQL Server را بررسی کنید.",
         53 or 40 or 10060 or 10061 => "به SQL Server وصل نشد؛ IP، پورت ۵۰۵۰/۱۴۳۳، فایروال و port forwarding را بررسی کنید.",

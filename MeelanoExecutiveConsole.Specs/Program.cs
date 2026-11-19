@@ -21,6 +21,9 @@ internal static class Program
             ("Jalali date parsing handles Persian digits and Gregorian SQL dates", PersianDateParsing),
             ("Direct SQL endpoint validation rejects malformed hosts and ports", SqlEndpointValidation),
             ("SQL TLS certificate failures provide precise safe diagnostics", SqlCertificateFailureDiagnosis),
+            ("SQL discovery stays bounded and validates TDS responses", SqlDiscovery),
+            ("SQL discovery handles fragmented prelogin responses", SqlDiscoveryNetwork),
+            ("SQL certificate hostname never disables TLS validation", SqlCertificateSettings),
             ("SQL source-value keys preserve exact values and distinguish NULL", SqlValueKeys),
             ("Live SQL snapshots cannot mutate check status", LiveSqlIsReadOnly),
             ("Persian search normalizes keyboard and digit variants", PersianSearchNormalization),
@@ -195,6 +198,69 @@ internal static class Program
             new System.Runtime.InteropServices.ExternalException("TLS handshake failed.", -2146893022));
         Contains("SAN", nameMismatch, "certificate name mismatch explains the DNS requirement");
         Contains("غیرفعال نکنید", nameMismatch, "name mismatch diagnostic remains fail-closed");
+    }
+
+    private static void SqlDiscovery()
+    {
+        var hosts = SqlServerDiscoveryService.EnumerateTargets("10.20.35.100", 16);
+        Equal(254, hosts.Count, "wide subnets limited to local /24");
+        Equal("10.20.35.1", hosts[0].ToString(), "local /24 first address");
+        Equal("10.20.35.254", hosts[^1].ToString(), "local /24 last address");
+        var small = SqlServerDiscoveryService.EnumerateTargets("192.168.2.6", 30);
+        Equal(2, small.Count, "/30 usable addresses");
+        Equal("192.168.2.5", small[0].ToString(), "/30 first");
+        Equal(2, SqlServerDiscoveryService.EnumerateTargets("10.0.0.0", 31).Count, "/31 point to point");
+        Equal(1, SqlServerDiscoveryService.EnumerateTargets("10.0.0.3", 32).Count, "/32 host");
+        Throws<ArgumentException>(() => SqlServerDiscoveryService.EnumerateTargets("not-an-ip", 24), "invalid IP rejected");
+        var packet = SqlServerDiscoveryService.CreatePreloginPacket();
+        Equal(26, packet.Length, "TDS packet length");
+        Equal((byte)26, packet[3], "TDS header length");
+        packet[0] = 4; // response with valid descriptors and data
+        True(SqlServerDiscoveryService.IsPreloginResponse(packet), "valid prelogin response accepted");
+        packet[10] = 255;
+        False(SqlServerDiscoveryService.IsPreloginResponse(packet), "bad descriptor offset rejected");
+        False(SqlServerDiscoveryService.IsPreloginResponse(new byte[] { 4, 1, 0, 8, 0, 0, 1, 0 }), "short response rejected");
+    }
+
+    private static void SqlDiscoveryNetwork()
+    {
+        using var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+        listener.Start();
+        var port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var serverTask = Task.Run(async () =>
+        {
+            using var client = await listener.AcceptTcpClientAsync(deadline.Token);
+            using var stream = client.GetStream();
+            var request = new byte[26];
+            await stream.ReadExactlyAsync(request, deadline.Token);
+            Equal((byte)0x12, request[0], "prelogin sent before any login");
+            request[0] = 4;
+            await stream.WriteAsync(request.AsMemory(0, 4), deadline.Token);
+            await Task.Delay(20, deadline.Token);
+            await stream.WriteAsync(request.AsMemory(4), deadline.Token);
+        });
+        var results = SqlServerDiscoveryService.DiscoverAsync(
+            new SqlServerDiscoveryService.LocalNetwork("test", "127.0.0.1", 32, "—"),
+            new[] { port }, null, deadline.Token).GetAwaiter().GetResult();
+        serverTask.GetAwaiter().GetResult();
+        Equal(1, results.Count, "fragmented response found");
+        Equal(port, results[0].Port, "port retained");
+    }
+
+    private static void SqlCertificateSettings()
+    {
+        var settings = new SqlServerConnectionSettings("192.168.1.9", 1433, true, null, null, "sql.example.local");
+        Equal("sql.example.local", settings.CertificateHostName, "expected certificate name");
+        Throws<ArgumentException>(() => new SqlServerConnectionSettings("localhost", 1433, true, null, null, "sql;TrustServerCertificate=true"), "injected certificate name rejected");
+        var method = typeof(SqlServerConnectionSettings).GetMethod("CreateConnection", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
+        using var connection = (Microsoft.Data.SqlClient.SqlConnection)method.Invoke(settings, new object[] { "master" })!;
+        var builder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connection.ConnectionString);
+        False(builder.TrustServerCertificate, "certificate trust is not bypassed");
+        Equal("sql.example.local", builder.HostNameInCertificate, "expected certificate hostname set");
+        Equal(Microsoft.Data.SqlClient.SqlConnectionEncryptOption.Mandatory, builder.Encrypt, "encryption mandatory");
+        var expired = SqlServerErrorMessages.ToPersian(new System.Runtime.InteropServices.ExternalException("TLS", unchecked((int)0x800B0101)));
+        Contains("دورهٔ اعتبار", expired, "expired certificate diagnosis");
     }
 
     private static void SqlValueKeys()

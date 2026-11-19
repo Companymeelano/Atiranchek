@@ -42,6 +42,7 @@ public partial class SqlConnectionWindow : Window
         initialized = true;
         UpdateAuthenticationControls();
         UpdateThemeToggle();
+        RefreshNetworks();
     }
 
     private void ThemeToggle_Click(object sender, RoutedEventArgs e)
@@ -54,6 +55,53 @@ public partial class SqlConnectionWindow : Window
     {
         ThemeToggleButton.Content = ThemeManager.ToggleLabel;
         ThemeToggleButton.ToolTip = ThemeManager.ToggleToolTip;
+    }
+
+    private void RefreshNetworks_Click(object sender, RoutedEventArgs e) => RefreshNetworks();
+
+    private void RefreshNetworks()
+    {
+        NetworkCombo.ItemsSource = SqlServerDiscoveryService.GetLocalNetworks();
+        NetworkCombo.SelectedIndex = NetworkCombo.Items.Count > 0 ? 0 : -1;
+        ServerResultsCombo.ItemsSource = null;
+        ScanStatusText.Text = NetworkCombo.Items.Count == 0 ? "آداپتور IPv4 فعال پیدا نشد؛ سرور را دستی وارد کنید." : "آداپتور را انتخاب کنید.";
+    }
+
+    private async void ScanServers_Click(object sender, RoutedEventArgs e)
+    {
+        if (NetworkCombo.SelectedItem is not SqlServerDiscoveryService.LocalNetwork network)
+        {
+            ShowError("ابتدا آداپتور شبکه را انتخاب کنید.");
+            return;
+        }
+        var normalizedPort = PersianText.NormalizeForSearch(PortBox.Text).Trim();
+        if (!int.TryParse(normalizedPort, NumberStyles.None, CultureInfo.InvariantCulture, out var port) || port is < 1 or > 65535)
+        {
+            ShowError("پورت باید بین ۱ تا ۶۵۵۳۵ باشد.");
+            return;
+        }
+        ServerResultsCombo.ItemsSource = null;
+        IReadOnlyList<SqlServerDiscoveryService.Server>? results = null;
+        var succeeded = await RunWithOverlayAsync(async (progress, token) =>
+        {
+            var scanProgress = new Progress<(int Done, int Total)>(p =>
+                progress.Report(new SqlServerProgress(p.Total == 0 ? 0 : p.Done * 100 / p.Total, $"جستجوی شبکه: {p.Done} از {p.Total}")));
+            results = await SqlServerDiscoveryService.DiscoverAsync(network, new[] { 1433, 5050, port }, scanProgress, token);
+        });
+        if (!succeeded || results is null) return;
+        ServerResultsCombo.ItemsSource = results;
+        ScanStatusText.Text = results.Count == 0
+            ? "پاسخ SQL پیدا نشد؛ فایروال، پورت و محدوده را بررسی کنید یا سرور را دستی وارد کنید."
+            : $"{PersianFormatting.Number(results.Count)} پاسخ TDS پیدا شد؛ سرور را انتخاب و نام گواهی را مستقل بررسی کنید.";
+    }
+
+    private void ServerResults_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ServerResultsCombo.SelectedItem is not SqlServerDiscoveryService.Server server) return;
+        ServerHostBox.Text = server.Address;
+        PortBox.Text = server.Port.ToString(CultureInfo.InvariantCulture);
+        // Never reuse an expected certificate name from a different endpoint.
+        CertificateHostBox.Clear();
     }
 
     private async void Connect_Click(object sender, RoutedEventArgs e)
@@ -469,7 +517,8 @@ public partial class SqlConnectionWindow : Window
             port,
             useWindowsAuthentication,
             UserNameBox.Text,
-            PasswordInput.Password);
+            PasswordInput.Password,
+            CertificateHostBox.Text);
     }
 
     private string GetSelectedDatabase() => DatabaseCombo.SelectedItem as string
