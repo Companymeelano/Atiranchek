@@ -17,12 +17,16 @@ internal static class Program
             ("Scenario shifts only selected pending incoming checks", ScenarioShift),
             ("Status transitions enforce check type and terminal states", StatusTransitions),
             ("Weighted date excludes completed checks and rounds to a whole day", WeightedDate),
-            ("Persian display uses grouped Persian digits", PersianFormattingDisplay),
+            ("Persian display uses grouped digits, toman and Solar Hijri dates", PersianFormattingDisplay),
+            ("Jalali date parsing handles Persian digits and Gregorian SQL dates", PersianDateParsing),
+            ("Direct SQL endpoint validation rejects malformed hosts and ports", SqlEndpointValidation),
+            ("SQL source-value keys preserve exact values and distinguish NULL", SqlValueKeys),
+            ("Live SQL snapshots cannot mutate check status", LiveSqlIsReadOnly),
             ("Persian search normalizes keyboard and digit variants", PersianSearchNormalization),
             ("CSV quotes correctly and protects text from formulas", CsvFormatting),
             ("View-model search supports Persian digits and empty results", ViewModelSearch),
             ("View-model status totals remain correct after refresh", ViewModelStatusCounts),
-            ("Sales charts aggregate multiple transactions by calendar day", SalesChartAggregation),
+            ("Sales charts aggregate daily sales within the latest 90 calendar days", SalesChartAggregation),
             ("Demo fixtures have unique IDs and valid financial ranges", DemoFixtureValidation)
         };
 
@@ -138,7 +142,63 @@ internal static class Program
     {
         Equal("۱٬۲۳۴٬۵۶۷", PersianFormatting.Number(1_234_567), "grouped Persian digits");
         Equal("۷۳٫۵ م", PersianFormatting.CompactMillions(73_500_000), "fractional compact chart value");
-        True(PersianFormatting.Money(25_000).EndsWith("ریال", StringComparison.Ordinal), "currency label");
+        True(PersianFormatting.Money(25_000).EndsWith("تومان", StringComparison.Ordinal), "currency label");
+        Equal("۱۴۰۳/۰۱/۰۱", PersianFormatting.PersianDate(new DateTime(2024, 3, 20)), "Nowruz Solar Hijri date");
+        Equal("۱۴۰۵/۰۸/۲۷", PersianFormatting.PersianDate(Today), "current Solar Hijri date");
+    }
+
+    private static void PersianDateParsing()
+    {
+        True(PersianDateParser.TryParse("۱۴۰۵/۰۸/۲۷", out var jalali), "Persian digit Jalali text parsed");
+        Equal(Today, jalali, "Jalali date converts to Gregorian internal date");
+        True(PersianDateParser.TryParse("2026-11-18", out var iso), "ISO SQL date parsed");
+        Equal(Today, iso, "ISO Gregorian date remains correct");
+        True(PersianDateParser.TryParse("20261118", out var compact), "compact year-first SQL date parsed");
+        Equal(Today, compact, "compact Gregorian date remains correct");
+        False(PersianDateParser.TryParse("2026-11-18garbage", out _), "malformed suffix is not stripped into a valid date");
+        False(PersianDateParser.TryParse("2026/11-18", out _), "mixed date separators rejected");
+        True(PersianDateParser.TryParse(new DateTime(2026, 11, 18, 13, 45, 0), out var sqlDate), "SQL datetime parsed");
+        Equal(Today, sqlDate, "SQL datetime uses calendar day");
+        False(PersianDateParser.TryParse("۱۴۰۵/۱۳/۳۲", out _), "invalid Jalali date rejected");
+        False(PersianDateParser.TryParse("۱۲۹۹/۰۸/۲۷", out _), "unsupported calendar year rejected instead of treated as Gregorian");
+        False(PersianDateParser.TryParse(DateTime.MinValue, out _), "unsupported SQL date range rejected");
+        False(PersianDateParser.TryParse("January 1, 0001", out _), "unsupported textual calendar value rejected");
+        False(PersianDateParser.TryParse("2026", out _), "year-only text rejected instead of guessed as a date");
+    }
+
+    private static void SqlEndpointValidation()
+    {
+        var settings = new SqlServerConnectionSettings("127.0.0.1", 5050, true, null, null);
+        Equal("127.0.0.1", settings.ServerHost, "IPv4 host accepted");
+        Equal(5050, settings.Port, "forwarded SQL port accepted");
+        True(settings.UseWindowsAuthentication, "Windows auth selected");
+        Throws<ArgumentException>(() => new SqlServerConnectionSettings("localhost;TrustServerCertificate=True", 1433, true, null, null), "connection-string fragment rejected as host");
+        Throws<ArgumentException>(() => new SqlServerConnectionSettings("localhost", 65536, true, null, null), "out-of-range port rejected");
+        Throws<ArgumentException>(() => new SqlServerConnectionSettings("localhost", 1433, false, "report_reader", null), "empty SQL password rejected");
+    }
+
+    private static void SqlValueKeys()
+    {
+        False(SqlValueOption.KeyFor("Pending") == SqlValueOption.KeyFor("pending"), "case-distinct SQL values remain separately mappable");
+        False(SqlValueOption.KeyFor("ي") == SqlValueOption.KeyFor("ی"), "Arabic/Persian letter variants remain separately mappable");
+        Equal(SqlValueOption.NullLookupKey, SqlValueOption.KeyFor(null), "SQL NULL has a dedicated mapping key");
+        False(SqlValueOption.NullLookupKey == SqlValueOption.KeyFor(SqlValueOption.NullLookupKey), "a literal source value cannot collide with SQL NULL");
+        Equal("(SQL NULL)", new SqlValueOption("", SqlValueOption.NullLookupKey, true).DisplayValue, "NULL label is explicit");
+        Equal("«(SQL NULL)»", new SqlValueOption("(SQL NULL)", SqlValueOption.KeyFor("(SQL NULL)"), false).DisplayValue, "literal null-like text remains distinguishable");
+        Equal("(رشتهٔ خالی)", new SqlValueOption("", SqlValueOption.KeyFor(""), false).DisplayValue, "empty text is distinguishable from NULL");
+    }
+
+    private static void LiveSqlIsReadOnly()
+    {
+        var incoming = Check("RC-LIVE", CheckKind.دریافتی, 40, Today);
+        var viewModel = new MainViewModel(new ReadOnlyStubRepository([incoming]), () => Today);
+        viewModel.UpdateSelection([incoming]);
+
+        var result = viewModel.ApplySelectedStatus(CheckStatuses.Collected);
+        Equal(0, result.Updated, "live data has no status writes");
+        Equal(1, result.Skipped, "live status operation rejected");
+        Equal(CheckStatuses.Pending, incoming.Status, "SQL snapshot is unchanged");
+        False(viewModel.CanChangeStatus, "live edit controls disabled");
     }
 
     private static void PersianSearchNormalization()
@@ -200,22 +260,31 @@ internal static class Program
 
     private static void SalesChartAggregation()
     {
-        var repository = new DemoRepository();
-        var viewModel = new MainViewModel(repository, () => DateTime.Today);
-        var expected = repository.GetSales()
-            .GroupBy(sale => sale.Date.Date)
-            .ToDictionary(group => group.Key, group => group.Sum(sale => sale.Amount));
+        var sales = new[]
+        {
+            Sale(Today.AddDays(-90), 100),
+            Sale(Today.AddDays(-89), 10),
+            Sale(Today.AddDays(-89), 15),
+            Sale(Today, 30),
+            Sale(Today.AddDays(1), 40)
+        };
+        var viewModel = new MainViewModel(new StubRepository([], sales), () => Today);
 
-        Equal(expected.Count, viewModel.SalesChart.Count, "one chart point per distinct day");
-        foreach (var point in viewModel.SalesChart)
-            Equal(expected[point.Date], point.Amount, $"daily total on {point.Date:yyyy-MM-dd}");
-
-        var sameDaySales = repository.GetSales().Where(sale => sale.Date.Date == DateTime.Today).ToArray();
-        True(sameDaySales.Length > 1, "fixture has more than one same-day transaction");
-        Equal(sameDaySales.Sum(sale => sale.Amount),
-            viewModel.SalesChart.Single(point => point.Date == DateTime.Today).Amount,
-            "same-day sales are aggregated");
+        Equal(2, viewModel.SalesChart.Count, "old and future records are outside the 90-day chart window");
+        Equal(Today.AddDays(-89), viewModel.SalesChart[0].Date, "chart starts at the 90th inclusive calendar day");
+        Equal(25m, viewModel.SalesChart[0].Amount, "transactions on the first day are aggregated");
+        Equal(30m, viewModel.SalesChart[1].Amount, "today is included and same-day sales are aggregated");
     }
+
+    private static SaleItem Sale(DateTime date, decimal amount) => new()
+    {
+        Date = date,
+        Customer = "مشتری",
+        Seller = "فروشنده",
+        Amount = amount,
+        Profit = amount / 10,
+        CollectionStatus = "وصول‌شده"
+    };
 
     private static void DemoFixtureValidation()
     {
@@ -269,17 +338,44 @@ internal static class Program
             throw new InvalidOperationException($"{description}: '{expected}' was not present.");
     }
 
+    private static void Throws<TException>(Action action, string description) where TException : Exception
+    {
+        try
+        {
+            action();
+        }
+        catch (TException)
+        {
+            return;
+        }
+        throw new InvalidOperationException($"Expected {typeof(TException).Name}: {description}.");
+    }
+
     private sealed class StubRepository : IRepository
     {
         private static readonly IReadOnlyList<SaleItem> NoSales = Array.Empty<SaleItem>();
         private readonly IReadOnlyList<CheckItem> checks;
+        private readonly IReadOnlyList<SaleItem> sales;
 
-        public StubRepository(IReadOnlyList<CheckItem> checks)
+        public StubRepository(IReadOnlyList<CheckItem> checks, IReadOnlyList<SaleItem>? sales = null)
         {
             this.checks = checks;
+            this.sales = sales ?? NoSales;
         }
 
         public IReadOnlyList<CheckItem> GetChecks() => checks;
+        public IReadOnlyList<SaleItem> GetSales() => sales;
+    }
+
+    private sealed class ReadOnlyStubRepository : IRepository
+    {
+        private readonly IReadOnlyList<CheckItem> checks;
+        private static readonly IReadOnlyList<SaleItem> NoSales = Array.Empty<SaleItem>();
+
+        public ReadOnlyStubRepository(IReadOnlyList<CheckItem> checks) => this.checks = checks;
+        public IReadOnlyList<CheckItem> GetChecks() => checks;
         public IReadOnlyList<SaleItem> GetSales() => NoSales;
+        public bool IsReadOnly => true;
+        public string DataSourceDescription => "SQL Server · تست · فقط‌خواندنی";
     }
 }

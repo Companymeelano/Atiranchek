@@ -2,25 +2,36 @@ using System.Globalization;
 
 namespace MeelanoExecutiveConsole.Models;
 
-/// <summary>
-/// Persian-digit display helpers. Dates deliberately remain Gregorian until a tested
-/// Persian-calendar requirement and conversion library are selected.
-/// </summary>
+/// <summary>Persian-digit, Toman and Solar Hijri display helpers.</summary>
 public static class PersianFormatting
 {
+    private static readonly PersianCalendar Calendar = new();
+
     public static string Number(decimal value) =>
         LocalizeDigits(value.ToString("N0", CultureInfo.InvariantCulture).Replace(',', '٬'));
 
     public static string Number(int value) =>
         LocalizeDigits(value.ToString("N0", CultureInfo.InvariantCulture).Replace(',', '٬'));
 
-    public static string Money(decimal value) => $"{Number(value)} ریال";
+    public static string Money(decimal value) => $"{Number(value)} تومان";
 
-    public static string GregorianDate(DateTime value) =>
-        LocalizeDigits(value.ToString("yyyy/MM/dd", CultureInfo.InvariantCulture));
+    public static string PersianDate(DateTime value)
+    {
+        if (value < Calendar.MinSupportedDateTime || value > Calendar.MaxSupportedDateTime)
+            return "—";
 
-    public static string GregorianShortDate(DateTime value) =>
-        LocalizeDigits(value.ToString("MM/dd", CultureInfo.InvariantCulture));
+        return LocalizeDigits(string.Create(CultureInfo.InvariantCulture,
+            $"{Calendar.GetYear(value):0000}/{Calendar.GetMonth(value):00}/{Calendar.GetDayOfMonth(value):00}"));
+    }
+
+    public static string PersianShortDate(DateTime value)
+    {
+        if (value < Calendar.MinSupportedDateTime || value > Calendar.MaxSupportedDateTime)
+            return "—";
+
+        return LocalizeDigits(string.Create(CultureInfo.InvariantCulture,
+            $"{Calendar.GetMonth(value):00}/{Calendar.GetDayOfMonth(value):00}"));
+    }
 
     public static string CompactMillions(decimal value)
     {
@@ -30,10 +41,8 @@ public static class PersianFormatting
         return $"{LocalizeDigits(localized)} م";
     }
 
-    private static string LocalizeDigits(string value)
-    {
-        return string.Concat(value.Select(character => character is >= '0' and <= '9'
+    private static string LocalizeDigits(string value) =>
+        string.Concat(value.Select(character => character is >= '0' and <= '9'
             ? (char)('۰' + character - '0')
             : character));
-    }
 }

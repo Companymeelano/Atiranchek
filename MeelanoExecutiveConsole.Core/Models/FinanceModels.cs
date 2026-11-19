@@ -27,11 +27,12 @@ public sealed class CheckItem
     public DateTime DueDate { get; init; }
     public string Status { get; set; } = CheckStatuses.Pending;
     public int Risk { get; init; }
+    public bool HasRiskScore { get; init; } = true;
     public string Bank { get; init; } = "";
 
     public string AmountText => PersianFormatting.Money(Amount);
-    public string DueDateText => PersianFormatting.GregorianDate(DueDate);
-    public string RiskText => PersianFormatting.Number(Risk);
+    public string DueDateText => PersianFormatting.PersianDate(DueDate);
+    public string RiskText => HasRiskScore ? PersianFormatting.Number(Risk) : "—";
 }
 
 public sealed class SaleItem
@@ -45,7 +46,7 @@ public sealed class SaleItem
 
     public string AmountText => PersianFormatting.Money(Amount);
     public string ProfitText => PersianFormatting.Money(Profit);
-    public string DateText => PersianFormatting.GregorianDate(Date);
+    public string DateText => PersianFormatting.PersianDate(Date);
 }
 
 public sealed class SalesDayPoint
@@ -59,7 +60,7 @@ public sealed class SalesDayPoint
     public DateTime Date { get; }
     public decimal Amount { get; }
     public double ChartBarHeight { get; set; }
-    public string ShortDateText => PersianFormatting.GregorianShortDate(Date);
+    public string ShortDateText => PersianFormatting.PersianShortDate(Date);
     public string ChartAmountText => PersianFormatting.CompactMillions(Amount);
 }
 
@@ -78,7 +79,7 @@ public sealed class RadarPoint
     public decimal Outgoing { get; }
     public decimal Balance { get; }
     public bool IsNegative => Balance < 0;
-    public string DayText => PersianFormatting.GregorianDate(Day);
+    public string DayText => PersianFormatting.PersianDate(Day);
     public string IncomingText => PersianFormatting.Money(Incoming);
     public string OutgoingText => PersianFormatting.Money(Outgoing);
     public string BalanceText => PersianFormatting.Money(Balance);

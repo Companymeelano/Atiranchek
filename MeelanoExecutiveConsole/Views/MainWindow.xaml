@@ -111,11 +111,11 @@
                         <StackPanel>
                             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
                                 <Ellipse Width="8" Height="8" Fill="{StaticResource GreenBrush}" VerticalAlignment="Center" Margin="0,0,0,0" />
-                                <TextBlock Text="  نسخهٔ نمایشی" FontWeight="Bold" Foreground="{StaticResource GoldLightBrush}" />
+                                <TextBlock Text="{Binding DataModeLabel}" FontWeight="Bold" Foreground="{StaticResource GoldLightBrush}" />
                             </StackPanel>
-                            <TextBlock Text="اطلاعات ساختگی و درون‌حافظه‌ای؛ اتصال به سامانه یا پایگاه داده برقرار نیست."
+                            <TextBlock Text="{Binding DataSourceDescription}"
                                        Foreground="{StaticResource TextMutedBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" />
-                            <TextBlock Text="نسخهٔ ۱.۰.۲ · نمایشی" Foreground="{StaticResource GoldBrush}"
+                            <TextBlock Text="نسخهٔ ۱.۱.۰ · مستقیم/نمایشی" Foreground="{StaticResource GoldBrush}"
                                        FontSize="10" Margin="0,8,0,0" />
                         </StackPanel>
                     </Border>
@@ -134,10 +134,11 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" FlowDirection="RightToLeft">
                             <Border Background="#1C2E2A" BorderBrush="#425945" BorderThickness="1" CornerRadius="8" Padding="10,5">
-                                <TextBlock Text="●  محیط نمونه" Foreground="{StaticResource GoldLightBrush}" FontSize="11" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding DataModeLabel}" Foreground="{StaticResource GoldLightBrush}" FontSize="11" FontWeight="SemiBold" />
                             </Border>
                             <Border Width="1" Height="24" Background="{StaticResource StrokeBrush}" Margin="14,0" />
                             <StackPanel VerticalAlignment="Center">
@@ -145,7 +146,9 @@
                                 <TextBlock Text="{Binding TodayDateText}" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,2,0,0" />
                             </StackPanel>
                         </StackPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" FlowDirection="LeftToRight">
+                        <Button Grid.Column="1" Content="اتصال SQL" Style="{StaticResource GoldButtonStyle}" VerticalAlignment="Center"
+                                ToolTip="اتصال رمزگذاری‌شده، انتخاب دیتابیس و نگاشت داده‌های فقط‌خواندنی" Click="ConnectSql_Click" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" FlowDirection="LeftToRight">
                             <Button Style="{StaticResource WindowButtonStyle}" Content="⛶" ToolTip="تغییر حالت تمام‌صفحه (F11)" Click="ToggleFullScreen_Click" />
                             <Button Style="{StaticResource WindowButtonStyle}" Content="—" ToolTip="کوچک‌کردن پنجره" Click="Minimize_Click" />
                             <Button Style="{StaticResource WindowButtonStyle}" Content="□" ToolTip="بزرگ‌نمایی یا بازگردانی" Click="Maximize_Click" />
@@ -179,7 +182,7 @@
                                             Padding="14,10" VerticalAlignment="Center">
                                         <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
                                             <TextBlock Text="●" Foreground="{StaticResource GreenBrush}" Margin="0,0,7,0" />
-                                            <TextBlock Text="نمایش آزمایشی" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" />
+                                            <TextBlock Text="منبع دادهٔ فعال" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" />
                                         </StackPanel>
                                     </Border>
                                 </Grid>
@@ -192,8 +195,8 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="ⓘ" Grid.Column="0" Foreground="{StaticResource GoldBrush}" FontSize="18" VerticalAlignment="Center" />
                                         <StackPanel Grid.Column="1">
-                                            <TextBlock Text="نسخهٔ نمایشی · داده‌ها واقعی نیستند" Foreground="{StaticResource GoldLightBrush}" FontWeight="Bold" />
-                                            <TextBlock Text="تغییر وضعیت‌ها فقط در حافظه می‌ماند و پس از بستن برنامه پاک می‌شود؛ هیچ اتصال به SQL Server آتیران پیکربندی نشده است."
+                                            <TextBlock Text="{Binding DataModeLabel}" Foreground="{StaticResource GoldLightBrush}" FontWeight="Bold" />
+                                            <TextBlock Text="{Binding DataSourceDescription}"
                                                        Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0" />
                                         </StackPanel>
                                     </Grid>
@@ -205,7 +208,7 @@
                                             <TextBlock Text="فروش امروز" Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
                                             <TextBlock Text="{Binding TodaySales}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"
                                                        TextTrimming="CharacterEllipsis" ToolTip="{Binding TodaySales}" Margin="0,11,0,4" />
-                                            <TextBlock Text="مجموع فروش نمونه" Foreground="{StaticResource BlueBrush}" FontSize="10" />
+                                            <TextBlock Text="مجموع فروش" Foreground="{StaticResource BlueBrush}" FontSize="10" />
                                         </StackPanel>
                                     </Border>
                                     <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="16" Padding="15" Margin="3">
@@ -249,7 +252,7 @@
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel Grid.Column="0">
                                                     <TextBlock Text="روند فروش" FontSize="16" FontWeight="Bold" />
-                                                    <TextBlock Text="تجمیع فروش هر روز · میلیون ریال" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
+                                                    <TextBlock Text="تجمیع فروش هر روز · میلیون تومان" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
                                                 </StackPanel>
                                                 <TextBlock Grid.Column="1" Text="{Binding SalesTotal}" HorizontalAlignment="Left" VerticalAlignment="Top"
                                                            Foreground="{StaticResource GoldLightBrush}" FontWeight="SemiBold" FontSize="11" />
@@ -295,7 +298,7 @@
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel Grid.Column="0">
                                                     <TextBlock Text="سررسیدهای نزدیک" FontSize="16" FontWeight="Bold" />
-                                                    <TextBlock Text="اولویت پیگیری · دادهٔ نمونه" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
+                                                    <TextBlock Text="اولویت سررسیدهای فعال" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
                                                 </StackPanel>
                                                 <Border Grid.Column="1" HorizontalAlignment="Left" Background="#202D27" CornerRadius="8" Padding="8,4">
                                                     <StackPanel Orientation="Horizontal">
@@ -344,7 +347,7 @@
                                             CornerRadius="14" Padding="14" Margin="0,0,6,0">
                                         <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
                                             <TextBlock Text="●" Foreground="{StaticResource RedBrush}" FontSize="13" Margin="0,0,8,0" />
-                                            <TextBlock Text="مورد پرریسک در نمونه‌ها" Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <TextBlock Text="طرف‌حساب‌های پرریسک" Foreground="{StaticResource TextSecondaryBrush}" />
                                             <TextBlock Text="{Binding RiskCustomers}" Foreground="{StaticResource GoldLightBrush}" FontWeight="Bold" Margin="8,0,0,0" />
                                         </StackPanel>
                                     </Border>
@@ -374,7 +377,7 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="مرکز چک‌ها" FontSize="24" FontWeight="Bold" />
-                                    <TextBlock Text="جست‌وجو، فیلتر و پیگیری کنترل‌شدهٔ تعهدهای نمونه" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,5,0,0" />
+                                    <TextBlock Text="جست‌وجو، فیلتر و بررسی تعهدهای نگاشت‌شده" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,5,0,0" />
                                 </StackPanel>
                                 <Border Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Background="#172624" BorderBrush="#344B41"
                                         BorderThickness="1" CornerRadius="10" Padding="10,6">
@@ -392,11 +395,11 @@
                                              Text="{Binding Query, UpdateSourceTrigger=PropertyChanged}" />
                                     <ComboBox Width="145" Margin="3" ItemsSource="{Binding CheckTypeFilters}" SelectedItem="{Binding SelectedCheckType}" />
                                     <ComboBox Width="155" Margin="3" ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding SelectedStatus}" />
-                                    <Button Content="ثبت وصول" Style="{StaticResource GoldButtonStyle}" Click="Collect_Click" />
-                                    <Button Content="ثبت پرداخت" Click="Pay_Click" />
-                                    <Button Content="برگشت" Click="Return_Click" />
-                                    <Button Content="تعلیق" Click="Suspend_Click" />
-                                    <Button Content="رفع تعلیق" Click="Resume_Click" />
+                                    <Button Content="ثبت وصول" Style="{StaticResource GoldButtonStyle}" IsEnabled="{Binding CanChangeStatus}" Click="Collect_Click" />
+                                    <Button Content="ثبت پرداخت" IsEnabled="{Binding CanChangeStatus}" Click="Pay_Click" />
+                                    <Button Content="برگشت" IsEnabled="{Binding CanChangeStatus}" Click="Return_Click" />
+                                    <Button Content="تعلیق" IsEnabled="{Binding CanChangeStatus}" Click="Suspend_Click" />
+                                    <Button Content="رفع تعلیق" IsEnabled="{Binding CanChangeStatus}" Click="Resume_Click" />
                                     <Button Content="خروجی CSV" Click="ChecksCsv_Click" />
                                     <Button Content="چاپ" Click="Print_Click" />
                                 </WrapPanel>
@@ -411,8 +414,8 @@
                                         <DataGridTextColumn Header="نوع" Binding="{Binding Kind}" Width="86" />
                                         <DataGridTextColumn Header="طرف حساب" Binding="{Binding Party}" Width="*" MinWidth="125" />
                                         <DataGridTextColumn Header="بانک" Binding="{Binding Bank}" Width="85" />
-                                        <DataGridTextColumn Header="مبلغ" Binding="{Binding AmountText}" Width="160" />
-                                        <DataGridTextColumn Header="سررسید · میلادی" Binding="{Binding DueDateText}" Width="120" />
+                                        <DataGridTextColumn Header="مبلغ · تومان" Binding="{Binding AmountText}" Width="160" />
+                                        <DataGridTextColumn Header="سررسید · شمسی" Binding="{Binding DueDateText}" Width="120" />
                                         <DataGridTemplateColumn Header="وضعیت" Width="115">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
@@ -423,7 +426,7 @@
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
-                                        <DataGridTextColumn Header="ریسک · دمو" Binding="{Binding RiskText}" Width="90" />
+                                        <DataGridTextColumn Header="امتیاز ریسک" Binding="{Binding RiskText}" Width="90" />
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <TextBlock Text="موردی با این معیارها پیدا نشد" FontSize="14" Foreground="{StaticResource TextMutedBrush}"
@@ -486,7 +489,7 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="فروش و عملکرد" FontSize="24" FontWeight="Bold" />
-                                    <TextBlock Text="جمع‌بندی و نمودار از داده‌های فروش نمونه" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,5,0,0" />
+                                    <TextBlock Text="جمع‌بندی و نمودار از داده‌های فروش بارگذاری‌شده" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,5,0,0" />
                                 </StackPanel>
                                 <Button Grid.Column="1" Content="خروجی CSV" HorizontalAlignment="Left" VerticalAlignment="Center" Click="SalesCsv_Click" />
                             </Grid>
@@ -494,13 +497,13 @@
                             <UniformGrid Grid.Row="1" Columns="3" Margin="-3,0,-3,10">
                                 <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="14" Padding="13" Margin="3">
                                     <StackPanel>
-                                        <TextBlock Text="فروش ثبت‌شده در نمونه‌ها" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="فروش ثبت‌شده" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
                                         <TextBlock Text="{Binding SalesTotal}" Foreground="{StaticResource GoldLightBrush}" FontWeight="Bold" FontSize="14" Margin="0,7,0,0" />
                                     </StackPanel>
                                 </Border>
                                 <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="14" Padding="13" Margin="3">
                                     <StackPanel>
-                                        <TextBlock Text="سود ثبت‌شده در نمونه‌ها" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="سود ثبت‌شده" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
                                         <TextBlock Text="{Binding SalesProfit}" Foreground="{StaticResource GreenBrush}" FontWeight="Bold" FontSize="14" Margin="0,7,0,0" />
                                     </StackPanel>
                                 </Border>
@@ -525,7 +528,7 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="مقایسهٔ فروش روزانه" FontSize="12" FontWeight="SemiBold" />
+                                        <TextBlock Grid.Column="0" Text="مقایسهٔ فروش روزانه · ۹۰ روز اخیر" FontSize="12" FontWeight="SemiBold" />
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
                                             <TextBlock Text="فروشندهٔ پیشتاز: " Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
                                             <TextBlock Text="{Binding TopSeller}" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
@@ -561,11 +564,11 @@
 
                             <DataGrid Grid.Row="3" ItemsSource="{Binding Sales}" CanUserReorderColumns="False">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="تاریخ · میلادی" Binding="{Binding DateText}" Width="125" />
+                                    <DataGridTextColumn Header="تاریخ · شمسی" Binding="{Binding DateText}" Width="125" />
                                     <DataGridTextColumn Header="مشتری" Binding="{Binding Customer}" Width="*" MinWidth="135" />
                                     <DataGridTextColumn Header="فروشنده" Binding="{Binding Seller}" Width="*" MinWidth="120" />
-                                    <DataGridTextColumn Header="مبلغ" Binding="{Binding AmountText}" Width="170" />
-                                    <DataGridTextColumn Header="سود" Binding="{Binding ProfitText}" Width="160" />
+                                    <DataGridTextColumn Header="مبلغ · تومان" Binding="{Binding AmountText}" Width="170" />
+                                    <DataGridTextColumn Header="سود · تومان" Binding="{Binding ProfitText}" Width="160" />
                                     <DataGridTextColumn Header="وضعیت وصول" Binding="{Binding CollectionStatus}" Width="120" />
                                 </DataGrid.Columns>
                             </DataGrid>
@@ -614,7 +617,7 @@
 
                             <DataGrid Grid.Row="3" ItemsSource="{Binding Radar}" CanUserReorderColumns="False">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="روز · میلادی" Binding="{Binding DayText}" Width="150" />
+                                    <DataGridTextColumn Header="روز · شمسی" Binding="{Binding DayText}" Width="150" />
                                     <DataGridTextColumn Header="ورودی" Binding="{Binding IncomingText}" Width="*" />
                                     <DataGridTextColumn Header="خروجی" Binding="{Binding OutgoingText}" Width="*" />
                                     <DataGridTemplateColumn Header="ماندهٔ تجمعی از صفر" Width="*">

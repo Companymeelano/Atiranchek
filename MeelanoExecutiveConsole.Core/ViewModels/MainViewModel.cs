@@ -10,6 +10,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
 {
     private const string AllTypes = "همهٔ چک‌ها";
     private const string AllStatuses = "همهٔ وضعیت‌ها";
+    private readonly IRepository repository;
     private readonly FinanceService service;
     private List<CheckItem> selectedChecks = [];
     private string query = string.Empty;
@@ -19,12 +20,16 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public MainViewModel(IRepository? repository = null, Func<DateTime>? todayProvider = null)
     {
-        service = new FinanceService(repository ?? new DemoRepository(), todayProvider);
+        this.repository = repository ?? new DemoRepository();
+        service = new FinanceService(this.repository, todayProvider);
         Checks = new ObservableCollection<CheckItem>(service.Checks);
         Sales = new ObservableCollection<SaleItem>(service.Sales
             .OrderBy(sale => sale.Date)
             .ThenBy(sale => sale.Customer));
+        var chartEnd = service.Today;
+        var chartStart = chartEnd.AddDays(-89);
         SalesChart = new ObservableCollection<SalesDayPoint>(Sales
+            .Where(sale => sale.Date.Date >= chartStart && sale.Date.Date <= chartEnd)
             .GroupBy(sale => sale.Date.Date)
             .OrderBy(group => group.Key)
             .Select(group => new SalesDayPoint(group.Key, group.Sum(sale => sale.Amount))));
@@ -123,7 +128,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    public string TodayDateText => $"{PersianFormatting.GregorianDate(service.Today)}  ·  میلادی";
+    public bool IsReadOnlyData => repository.IsReadOnly;
+    public bool CanChangeStatus => !repository.IsReadOnly;
+    public string DataSourceDescription => repository.DataSourceDescription;
+    public string DataModeLabel => repository.IsReadOnly ? "●  snapshot SQL · فقط‌خواندنی" : "●  محیط نمونه";
+    public string TodayDateText => $"{PersianFormatting.PersianDate(service.Today)}  ·  شمسی";
     public string TodaySales
     {
         get
@@ -155,14 +164,16 @@ public sealed class MainViewModel : INotifyPropertyChanged
         {
             var today = service.Today;
             return PersianFormatting.Number(service.Checks.Count(check =>
-                check.Status == CheckStatuses.Pending && (check.Risk >= 70 || check.DueDate.Date <= today)));
+                check.Status == CheckStatuses.Pending && ((check.HasRiskScore && check.Risk >= 70) || check.DueDate.Date <= today)));
         }
     }
-    public string RiskCustomers => PersianFormatting.Number(service.Checks
-        .Where(check => check.Status == CheckStatuses.Pending && check.Risk >= 70)
-        .Select(check => check.Party)
-        .Distinct(StringComparer.Ordinal)
-        .Count());
+    public string RiskCustomers => service.Checks.Any(check => check.HasRiskScore)
+        ? PersianFormatting.Number(service.Checks
+            .Where(check => check.Status == CheckStatuses.Pending && check.HasRiskScore && check.Risk >= 70)
+            .Select(check => check.Party)
+            .Distinct(StringComparer.Ordinal)
+            .Count())
+        : "—";
     public string SelectedTotal => PersianFormatting.Money(selectedChecks.Sum(check => check.Amount));
     public string SelectedCountText => PersianFormatting.Number(selectedChecks.Count);
     public bool HasNoFilteredChecks => FilteredChecks.Count == 0;
@@ -174,7 +185,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             var result = service.WeightedDate(selectedChecks);
             return result.Date is null
                 ? "برای رأس‌گیری، چکِ در انتظار انتخاب کنید"
-                : $"{PersianFormatting.GregorianDate(result.Date.Value)}  ·  {PersianFormatting.Money(result.Amount)}";
+                : $"{PersianFormatting.PersianDate(result.Date.Value)}  ·  {PersianFormatting.Money(result.Amount)}";
         }
     }
 
@@ -207,6 +218,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
     {
         ArgumentNullException.ThrowIfNull(targetStatus);
         var selection = selectedChecks.ToArray();
+        if (repository.IsReadOnly)
+            return (0, selection.Length);
         var updated = 0;
         foreach (var check in selection)
         {

@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.IO;
 using System.Security;
 using System.Text;
@@ -16,7 +15,7 @@ namespace MeelanoExecutiveConsole.Views;
 
 public partial class MainWindow : Window
 {
-    private readonly MainViewModel vm = new();
+    private MainViewModel vm = new();
 
     public MainWindow()
     {
@@ -27,6 +26,23 @@ public partial class MainWindow : Window
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
         SectionTabs.SelectedIndex = 0;
+    }
+
+    private void ConnectSql_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new SqlConnectionWindow { Owner = this };
+        if (dialog.ShowDialog() != true || dialog.ImportedRepository is not { } repository)
+            return;
+
+        vm = new MainViewModel(repository);
+        DataContext = vm;
+        ChecksGrid.UnselectAll();
+        SectionTabs.SelectedIndex = 0;
+        MessageBox.Show(
+            $"داده‌ها با موفقیت اعتبارسنجی و بارگذاری شدند.\n{repository.DataSourceDescription}\n{PersianFormatting.Number(repository.GetChecks().Count)} چک · {PersianFormatting.Number(repository.GetSales().Count)} فروش\n\nاتصال در این نسخه فقط‌خواندنی است؛ تغییرات مالی به SQL Server ارسال نمی‌شوند.",
+            "بارگذاری موفق",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
     }
 
     private void Navigation_Checked(object sender, RoutedEventArgs e)
@@ -48,6 +64,13 @@ public partial class MainWindow : Window
 
     private void ApplyStatus(string targetStatus)
     {
+        if (vm.IsReadOnlyData)
+        {
+            MessageBox.Show("منبع SQL در این نسخه فقط‌خواندنی است؛ برای ثبت تغییر، API یا مجوز نوشتنِ تأییدشده لازم است.",
+                "عملیات غیرفعال", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
         if (ChecksGrid.SelectedItems.Count == 0)
         {
             MessageBox.Show("ابتدا یک یا چند چک را انتخاب کنید.", "انتخاب چک", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -82,12 +105,12 @@ public partial class MainWindow : Window
             CsvCell.Text(check.Party),
             CsvCell.Text(check.Bank),
             CsvCell.Number(check.Amount),
-            CsvCell.Text(check.DueDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
+            CsvCell.Text(PersianFormatting.PersianDate(check.DueDate)),
             CsvCell.Text(check.Status),
-            CsvCell.Number(check.Risk)
+            check.HasRiskScore ? CsvCell.Number(check.Risk) : CsvCell.Text("")
         });
         var content = CsvFormatter.Build(
-            ["شماره", "نوع", "طرف حساب", "بانک", "مبلغ (ریال)", "سررسید میلادی", "وضعیت", "ریسک نمونه"],
+            ["شماره", "نوع", "طرف حساب", "بانک", "مبلغ (تومان)", "سررسید شمسی", "وضعیت", "امتیاز ریسک"],
             rows);
         ExportCsv(dialog.FileName, content);
     }
@@ -100,7 +123,7 @@ public partial class MainWindow : Window
 
         var rows = vm.Sales.Select(sale => new[]
         {
-            CsvCell.Text(sale.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
+            CsvCell.Text(PersianFormatting.PersianDate(sale.Date)),
             CsvCell.Text(sale.Customer),
             CsvCell.Text(sale.Seller),
             CsvCell.Number(sale.Amount),
@@ -108,7 +131,7 @@ public partial class MainWindow : Window
             CsvCell.Text(sale.CollectionStatus)
         });
         var content = CsvFormatter.Build(
-            ["تاریخ میلادی", "مشتری", "فروشنده", "مبلغ (ریال)", "سود (ریال)", "وضعیت وصول"],
+            ["تاریخ شمسی", "مشتری", "فروشنده", "مبلغ (تومان)", "سود (تومان)", "وضعیت وصول"],
             rows);
         ExportCsv(dialog.FileName, content);
     }
@@ -155,7 +178,10 @@ public partial class MainWindow : Window
             if (dialog.ShowDialog() != true)
                 return;
 
-            var document = BuildCheckReport(items, dialog.PrintableAreaWidth, dialog.PrintableAreaHeight);
+            var sourceNote = vm.IsReadOnlyData
+                ? $"گزارش فقط‌خواندنی از {vm.DataSourceDescription}"
+                : "داده‌های این گزارش متعلق به نسخهٔ نمایشی و غیرعملیاتی هستند.";
+            var document = BuildCheckReport(items, dialog.PrintableAreaWidth, dialog.PrintableAreaHeight, sourceNote);
             dialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, "گزارش چک‌های میلانو");
         }
         catch (Exception exception)
@@ -164,7 +190,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private static FlowDocument BuildCheckReport(IReadOnlyList<CheckItem> items, double pageWidth, double pageHeight)
+    private static FlowDocument BuildCheckReport(IReadOnlyList<CheckItem> items, double pageWidth, double pageHeight, string sourceNote)
     {
         var document = new FlowDocument
         {
@@ -182,7 +208,7 @@ public partial class MainWindow : Window
             Margin = new Thickness(0, 0, 0, 8)
         });
         document.Blocks.Add(new Paragraph(new Run(
-            $"تاریخ تهیه: {PersianFormatting.GregorianDate(DateTime.Today)} · میلادی     |     تعداد: {PersianFormatting.Number(items.Count)}"))
+            $"تاریخ تهیه: {PersianFormatting.PersianDate(DateTime.Today)} · شمسی     |     تعداد: {PersianFormatting.Number(items.Count)}"))
         {
             FontSize = 10,
             Foreground = Brushes.DimGray,
@@ -190,7 +216,7 @@ public partial class MainWindow : Window
         });
 
         var table = new Table { CellSpacing = 0 };
-        var headers = new[] { "شماره", "نوع", "طرف حساب", "بانک", "مبلغ (ریال)", "سررسید · میلادی", "وضعیت" };
+        var headers = new[] { "شماره", "نوع", "طرف حساب", "بانک", "مبلغ (تومان)", "سررسید · شمسی", "وضعیت" };
         foreach (var _ in headers)
             table.Columns.Add(new TableColumn { Width = new GridLength(1, GridUnitType.Star) });
 
@@ -226,7 +252,7 @@ public partial class MainWindow : Window
         }
 
         document.Blocks.Add(table);
-        document.Blocks.Add(new Paragraph(new Run("داده‌های این گزارش متعلق به نسخهٔ نمایشی و غیرعملیاتی هستند."))
+        document.Blocks.Add(new Paragraph(new Run(sourceNote))
         {
             FontSize = 9,
             Foreground = Brushes.DimGray,

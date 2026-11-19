@@ -1,37 +1,11 @@
-# یادداشت‌های طراحی: کنسول مدیران MEELANO
+# Design notes
 
-## جهت بصری و تجربه
-- رابط فارسی/RTL با پوستهٔ گرافیتی و سبزآبی، کنتراست خوانا و تأکید طلایی محدود؛ ظاهر لوکس نباید وضوح، تمرکز صفحه‌کلید یا خوانایی را قربانی کند.
-- شروع در حالت بیشینه، کنترل‌های قاب سفارشی، تغییر اندازه، پیمایش و فوکوس قابل مشاهده برای صفحه‌کلید. `F11` و `Esc` حالت بیشینه/پنجره را عوض می‌کنند.
-- پنجره روی نمایشگر ثانویه با bounds ذخیره‌شدهٔ WPF بازگردانی می‌شود؛ اندازهٔ حداقل برای نمایشگرهای کوچک‌تر پایین آورده شده و جدول اسکرول افقی دارد.
-- ارقام رابط فارسی است؛ تاریخ‌ها فعلاً میلادی‌اند. تبدیل شمسی فقط بعد از انتخاب قرارداد تقویمی و آزمون لبه‌های سال/ماه انجام شود.
-- نشان دمو در داشبورد و سایدبار پابرجاست؛ نمونه نباید با دادهٔ عملیاتی اشتباه شود.
-
-## دامنهٔ نسخهٔ 1.0.2
-این build شامل داشبورد نمونه، مرکز چک، فروش نمونه و رادار جریان نقدی است. اتصال SQL Server آتیران، حسابداری عمومی، انبار، حقوق‌ودستمزد و ERP گسترده خارج از دامنه‌اند.
-
-## منطق و قراردادها
-- مدل، سرویس و ViewModel در پروژهٔ مستقل `MeelanoExecutiveConsole.Core` هستند؛ رابط WPF فقط در پروژهٔ Windows قرار دارد.
-- بازهٔ هفت‌روزه شامل امروز و شش روز بعد است؛ بازه‌ها در محاسبه inclusive هستند.
-- رادار ۳۰ روزه از ماندهٔ آغازین صفر شروع می‌شود. فقط چک‌های در انتظار وارد آن می‌شوند؛ تعهد معوق در روز صفر قرار می‌گیرد، موارد پس از روز ۳۰ دیده نمی‌شوند.
-- سناریو فقط سررسید چک دریافتیِ انتخاب‌شده و در انتظار را میان ۱۴ روز زودتر و ۳۰ روز دیرتر جابه‌جا می‌کند.
-- تاریخ وزنی بر اساس مبلغ چک‌های انتخاب‌شدهٔ در انتظار محاسبه و به نزدیک‌ترین روز گرد می‌شود.
-- تغییر وضعیت در `FinanceService` متمرکز است: وصول دریافتی، پرداخت پرداختی، تعلیق/بازگردانی و برگشت از وضعیت معتبر. وضعیت‌های پایانی دوباره باز نمی‌شوند.
-- CSV در RFC-style quoting، CRLF، UTF-8 BOM در زمان ذخیره و محافظت از سلول متنیِ آغازشونده با علامت فرمول رعایت می‌کند؛ مقادیر عددی به‌عنوان عدد باقی می‌مانند.
-- جست‌وجو «ی/ي»، «ک/ك»، ارقام فارسی/عربی و فاصلهٔ نیمه‌فاصله را نرمال می‌کند.
-
-## بررسی و آزمون
-پروژهٔ `MeelanoExecutiveConsole.Specs` بدون بستهٔ ثالث ۱۲ سناریوی منطق Core را اجرا می‌کند. Workflow ویندوزی Specs را قبل از build و installer smoke test اجرا می‌کند. این مجموعه جای آزمون دستی رزولوشن/DPI، چاپگر، SmartScreen و نسخه‌های مختلف Windows را نمی‌گیرد.
-
-## مرزهای فعلی
-- داده‌ها درون‌حافظه‌ای و ساختگی هستند؛ پس از بستن برنامه حذف می‌شوند.
-- هیچ schema، query، احراز هویت، مجوز، audit، persistence یا secret اتصال SQL در مخزن وجود ندارد.
-- score ریسک ثابت دمو است و پیش‌بینی نقدینگی، ماندهٔ بانکی واقعی نیست.
-- نصب‌کننده فعلاً امضای دیجیتال ندارد.
-
-## مسیر نسخهٔ عملیاتی
-1. قرارداد داده و مالک تأییدکنندهٔ SQL Server را دریافت کنید؛ schema را حدس نزنید.
-2. نخست یک اتصال read-only با least-privilege، مدیریت امن secret و نمایش خطای کنترل‌شده بسازید.
-3. قبل از هر write مالی، هویت/نقش، تأیید کاربر، تراکنش، ثبت ممیزی تغییرناپذیر و سیاست backup/restore را مشخص کنید.
-4. نیاز واقعی تقویم شمسی، اعلان سررسید، فیلترهای فروش، چندکاربره‌بودن و reconciliation بانکی را با کاربران نهایی اعتبارسنجی کنید.
-5. برای توزیع سازمانی، code signing معتبر، سیاست به‌روزرسانی و امضای hash دارایی‌ها را اضافه کنید.
+- Desktop UI is Persian RTL; dates are shown in Solar Hijri and money in toman. SQL `DATE`/`DATETIME` values remain Gregorian internally and are converted with .NET `PersianCalendar` at presentation. Recognizable Jalali `YYYY/MM/DD` values (year 1300–1499) are parsed as Jalali; ambiguous/invalid values fail validation instead of being silently guessed.
+- SQL source units are selected explicitly per check/sales mapping; there is no guessed default. Rial is divided by ten. The sales amount and profit share one selected unit/conversion factor.
+- Direct SQL uses an explicit TCP endpoint (`host,port`, default port 5050), mandatory encrypted transport, certificate validation, short-lived credentials, and a connection pool disabled for this one-shot snapshot workflow. Neither credentials nor connection strings are persisted.
+- Data discovery queries `sys.databases` and `INFORMATION_SCHEMA`; import queries use only quoted identifiers originating from the discovered catalog. The user maps all required columns and each distinct check kind/status. Unknown values and validation errors stop import.
+- The SQL workflow is read-only by construction (`SELECT`/metadata only). `ApplicationIntent=ReadOnly` is a routing hint, not a permission boundary; the SQL login itself must be restricted to SELECT/CONNECT by the database owner.
+- SQL rows are held in an in-memory snapshot; the UI and view model block status edits and no SQL writes are issued. The dashboard doesn't reconnect automatically or implement the original Atiran app's identity/role model. Use a least-privilege SQL login and the organization's approved network controls.
+- The loading overlay uses a generated WPF 3D sphere/orbit scene, with stage progress during connection/schema discovery and record-count progress during import. It doesn't claim row-level percentages until a count query has completed.
+- Import is capped at 250,000 rows per selected table/view to avoid uncontrolled WPF memory growth. A reporting view should pre-filter very large sources. Sales totals/rankings use the loaded snapshot; the WPF daily chart is limited to the latest 90 calendar days.
+- The demo repository remains a safe offline fallback. No real host, database schema, role matrix, or credential is compiled into the app.

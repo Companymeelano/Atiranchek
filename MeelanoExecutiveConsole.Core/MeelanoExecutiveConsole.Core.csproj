@@ -6,4 +6,7 @@
     <RootNamespace>MeelanoExecutiveConsole</RootNamespace>
     <AssemblyName>MeelanoExecutiveConsole.Core</AssemblyName>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.2" />
+  </ItemGroup>
 </Project>
