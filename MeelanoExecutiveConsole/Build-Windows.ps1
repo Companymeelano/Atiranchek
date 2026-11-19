@@ -10,12 +10,32 @@ $ErrorActionPreference = 'Stop'
 if ($env:OS -ne 'Windows_NT') {
     throw 'This script must run on Windows; WPF cannot be executed on Linux or macOS.'
 }
+if ($Installer -and $RuntimeIdentifier -ne 'win-x64') {
+    throw 'The current Inno Setup definition packages win-x64 only. Publish win-x64 to create an installer.'
+}
 
 $project = Join-Path $PSScriptRoot 'MeelanoExecutiveConsole.csproj'
+$specs = Join-Path (Split-Path $PSScriptRoot -Parent) 'MeelanoExecutiveConsole.Specs\MeelanoExecutiveConsole.Specs.csproj'
+$versionXml = [xml](Get-Content -LiteralPath $project -Raw)
+$versionNode = $versionXml.SelectSingleNode('/Project/PropertyGroup/Version')
+$appVersion = if ($versionNode) { $versionNode.InnerText.Trim() } else { '' }
+if ($appVersion -notmatch '^\d+\.\d+\.\d+$') {
+    throw "A valid three-part application Version was not found in $project."
+}
+
+Write-Host "Running MEELANO core specifications..." -ForegroundColor Cyan
+& dotnet run --project $specs --configuration Release
+if ($LASTEXITCODE -ne 0) {
+    throw "Core specifications failed with exit code $LASTEXITCODE."
+}
+
 $publishDirectory = Join-Path $PSScriptRoot "artifacts\$RuntimeIdentifier"
+if (Test-Path $publishDirectory) {
+    Remove-Item -LiteralPath $publishDirectory -Recurse -Force
+}
 New-Item -ItemType Directory -Path $publishDirectory -Force | Out-Null
 
-Write-Host "Publishing MEELANO for $RuntimeIdentifier..." -ForegroundColor Cyan
+Write-Host "Publishing MEELANO $appVersion for $RuntimeIdentifier..." -ForegroundColor Cyan
 & dotnet publish $project `
     --configuration Release `
     --runtime $RuntimeIdentifier `
@@ -41,10 +61,6 @@ Write-Host "Ready: $executable" -ForegroundColor Green
 Write-Host 'This is a self-contained Windows build. The WPF interface is Windows-only.' -ForegroundColor DarkGray
 
 if ($Installer) {
-    if ($RuntimeIdentifier -ne 'win-x64') {
-        throw 'The current Inno Setup definition packages win-x64 only. Publish win-x64 to create an installer.'
-    }
-
     $compilerCandidates = @(
         "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
         "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
@@ -58,13 +74,19 @@ if ($Installer) {
         throw 'Inno Setup 6 was not found. Install Inno Setup 6, then run this script again with -Installer.'
     }
 
+    $installerDirectory = Join-Path $PSScriptRoot 'artifacts\installer'
+    if (Test-Path $installerDirectory) {
+        Remove-Item -LiteralPath $installerDirectory -Recurse -Force
+    }
+    New-Item -ItemType Directory -Path $installerDirectory -Force | Out-Null
+
     $installerScript = Join-Path $PSScriptRoot 'Installer\MeelanoExecutiveConsole.iss'
-    & $compiler $installerScript
+    & $compiler "/DMyAppVersion=$appVersion" $installerScript
     if ($LASTEXITCODE -ne 0) {
         throw "Inno Setup failed with exit code $LASTEXITCODE."
     }
 
-    $installerExe = Join-Path $PSScriptRoot 'artifacts\installer\MEELANO-Executive-Console-Setup-win-x64.exe'
+    $installerExe = Join-Path $installerDirectory 'MEELANO-Executive-Console-Setup-win-x64.exe'
     if (-not (Test-Path $installerExe)) {
         throw "Inno Setup completed but the installer was not found: $installerExe"
     }

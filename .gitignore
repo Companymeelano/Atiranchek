@@ -1,0 +1,13 @@
+# Build and publish output
+**/bin/
+**/obj/
+**/artifacts/
+**/.vs/
+
+# IDE and operating-system files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.DS_Store
+Thumbs.db

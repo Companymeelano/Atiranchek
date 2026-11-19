@@ -7,6 +7,8 @@ namespace MeelanoExecutiveConsole;
 
 public partial class App : Application
 {
+    private const long MaximumLogBytes = 1_048_576;
+    private static readonly object ErrorLogLock = new();
     private static readonly string ErrorLogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "MEELANO",
@@ -55,9 +57,15 @@ public partial class App : Application
             if (string.IsNullOrWhiteSpace(directory))
                 return;
 
-            Directory.CreateDirectory(directory);
-            var entry = $"{DateTimeOffset.Now:O}{Environment.NewLine}{exception}{Environment.NewLine}{new string('-', 72)}{Environment.NewLine}";
-            File.AppendAllText(ErrorLogPath, entry, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+            lock (ErrorLogLock)
+            {
+                Directory.CreateDirectory(directory);
+                if (File.Exists(ErrorLogPath) && new FileInfo(ErrorLogPath).Length >= MaximumLogBytes)
+                    File.Move(ErrorLogPath, ErrorLogPath + ".previous", overwrite: true);
+
+                var entry = $"{DateTimeOffset.Now:O}{Environment.NewLine}{exception}{Environment.NewLine}{new string('-', 72)}{Environment.NewLine}";
+                File.AppendAllText(ErrorLogPath, entry, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            }
         }
         catch
         {

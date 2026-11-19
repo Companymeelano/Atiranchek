@@ -10,32 +10,30 @@ public sealed class MainViewModel : INotifyPropertyChanged
 {
     private const string AllTypes = "همهٔ چک‌ها";
     private const string AllStatuses = "همهٔ وضعیت‌ها";
-    private readonly FinanceService service = new(new DemoRepository());
+    private readonly FinanceService service;
     private List<CheckItem> selectedChecks = [];
-    private string query = "";
+    private string query = string.Empty;
     private string selectedCheckType = AllTypes;
     private string selectedStatus = AllStatuses;
     private double shiftDays;
 
-    public MainViewModel()
+    public MainViewModel(IRepository? repository = null, Func<DateTime>? todayProvider = null)
     {
+        service = new FinanceService(repository ?? new DemoRepository(), todayProvider);
         Checks = new ObservableCollection<CheckItem>(service.Checks);
         Sales = new ObservableCollection<SaleItem>(service.Sales
             .OrderBy(sale => sale.Date)
             .ThenBy(sale => sale.Customer));
+        SalesChart = new ObservableCollection<SalesDayPoint>(Sales
+            .GroupBy(sale => sale.Date.Date)
+            .OrderBy(group => group.Key)
+            .Select(group => new SalesDayPoint(group.Key, group.Sum(sale => sale.Amount))));
         FilteredChecks = new ObservableCollection<CheckItem>();
         UpcomingChecks = new ObservableCollection<CheckItem>();
         Radar = new ObservableCollection<RadarPoint>();
-        CheckTypeFilters = new ObservableCollection<string>([AllTypes, CheckKind.دریافتی.ToString(), CheckKind.پرداختی.ToString()]);
-        StatusFilters = new ObservableCollection<string>(
-        [
-            AllStatuses,
-            CheckStatuses.Pending,
-            CheckStatuses.Collected,
-            CheckStatuses.Paid,
-            CheckStatuses.Returned,
-            CheckStatuses.Suspended
-        ]);
+        CheckTypeFilters = new ObservableCollection<string>(
+            [AllTypes, CheckKind.دریافتی.ToString(), CheckKind.پرداختی.ToString()]);
+        StatusFilters = new ObservableCollection<string>([AllStatuses, .. CheckStatuses.All]);
 
         SetSalesChartHeights();
         Refresh();
@@ -47,6 +45,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public ObservableCollection<CheckItem> Checks { get; }
     public ObservableCollection<SaleItem> Sales { get; }
+    public ObservableCollection<SalesDayPoint> SalesChart { get; }
     public ObservableCollection<CheckItem> FilteredChecks { get; }
     public ObservableCollection<CheckItem> UpcomingChecks { get; }
     public ObservableCollection<RadarPoint> Radar { get; }
@@ -58,9 +57,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
         get => query;
         set
         {
-            if (query == value)
+            var normalized = value ?? string.Empty;
+            if (query == normalized)
                 return;
-            query = value;
+            query = normalized;
             OnPropertyChanged();
             Refresh();
         }
@@ -71,9 +71,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
         get => selectedCheckType;
         set
         {
-            if (selectedCheckType == value)
+            var normalized = value ?? AllTypes;
+            if (selectedCheckType == normalized)
                 return;
-            selectedCheckType = value;
+            selectedCheckType = normalized;
             OnPropertyChanged();
             Refresh();
         }
@@ -84,9 +85,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
         get => selectedStatus;
         set
         {
-            if (selectedStatus == value)
+            var normalized = value ?? AllStatuses;
+            if (selectedStatus == normalized)
                 return;
-            selectedStatus = value;
+            selectedStatus = normalized;
             OnPropertyChanged();
             Refresh();
         }
@@ -97,7 +99,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
         get => shiftDays;
         set
         {
-            var normalized = Math.Clamp(Math.Round(value), -14, 30);
+            var normalized = double.IsFinite(value)
+                ? Math.Clamp(Math.Round(value), -14, 30)
+                : 0;
             if (Math.Abs(shiftDays - normalized) < 0.001)
                 return;
             shiftDays = normalized;
@@ -119,13 +123,41 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    public string TodayDateText => $"{PersianFormatting.GregorianDate(DateTime.Today)}  ·  میلادی";
-    public string TodaySales => PersianFormatting.Money(Sales.Where(sale => sale.Date.Date == DateTime.Today).Sum(sale => sale.Amount));
-    public string Incoming7 => PersianFormatting.Money(service.Incoming(DateTime.Today, DateTime.Today.AddDays(7)));
-    public string Outgoing7 => PersianFormatting.Money(service.Outgoing(DateTime.Today, DateTime.Today.AddDays(7)));
+    public string TodayDateText => $"{PersianFormatting.GregorianDate(service.Today)}  ·  میلادی";
+    public string TodaySales
+    {
+        get
+        {
+            var today = service.Today;
+            return PersianFormatting.Money(Sales.Where(sale => sale.Date.Date == today).Sum(sale => sale.Amount));
+        }
+    }
+    public string Incoming7
+    {
+        get
+        {
+            var today = service.Today;
+            return PersianFormatting.Money(service.Incoming(today, today.AddDays(6)));
+        }
+    }
+    public string Outgoing7
+    {
+        get
+        {
+            var today = service.Today;
+            return PersianFormatting.Money(service.Outgoing(today, today.AddDays(6)));
+        }
+    }
     public string Net7 => PersianFormatting.Money(service.Net7);
-    public string Warnings => PersianFormatting.Number(service.Checks.Count(check =>
-        check.Status == CheckStatuses.Pending && (check.Risk >= 70 || check.DueDate.Date == DateTime.Today)));
+    public string Warnings
+    {
+        get
+        {
+            var today = service.Today;
+            return PersianFormatting.Number(service.Checks.Count(check =>
+                check.Status == CheckStatuses.Pending && (check.Risk >= 70 || check.DueDate.Date <= today)));
+        }
+    }
     public string RiskCustomers => PersianFormatting.Number(service.Checks
         .Where(check => check.Status == CheckStatuses.Pending && check.Risk >= 70)
         .Select(check => check.Party)
@@ -133,8 +165,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         .Count());
     public string SelectedTotal => PersianFormatting.Money(selectedChecks.Sum(check => check.Amount));
     public string SelectedCountText => PersianFormatting.Number(selectedChecks.Count);
-    public string SelectedIncomingCountText => PersianFormatting.Number(selectedChecks.Count(check =>
-        check.Kind == CheckKind.دریافتی && check.Status == CheckStatuses.Pending));
+    public bool HasNoFilteredChecks => FilteredChecks.Count == 0;
+
     public string WeightedText
     {
         get
@@ -162,46 +194,39 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public void UpdateSelection(IEnumerable<CheckItem> items)
     {
-        selectedChecks = items.DistinctBy(check => check.Number, StringComparer.Ordinal).ToList();
-        OnPropertyChanged(nameof(SelectedTotal));
-        OnPropertyChanged(nameof(SelectedCountText));
-        OnPropertyChanged(nameof(SelectedIncomingCountText));
-        OnPropertyChanged(nameof(WeightedText));
+        ArgumentNullException.ThrowIfNull(items);
+        selectedChecks = items
+            .Where(check => check is not null)
+            .DistinctBy(check => check.Number, StringComparer.Ordinal)
+            .ToList();
+        NotifySelectionSummary();
         RefreshForecast();
     }
 
     public (int Updated, int Skipped) ApplySelectedStatus(string targetStatus)
     {
+        ArgumentNullException.ThrowIfNull(targetStatus);
+        var selection = selectedChecks.ToArray();
         var updated = 0;
-        foreach (var check in selectedChecks)
+        foreach (var check in selection)
         {
-            if (!CanTransition(check, targetStatus))
-                continue;
-
-            check.Status = targetStatus;
-            updated++;
+            if (service.TryChangeStatus(check, targetStatus))
+                updated++;
         }
+        var skipped = selection.Length - updated;
 
         if (updated > 0)
         {
+            // A refreshed filter can clear the DataGrid selection; report against the snapshot above.
+            selectedChecks = [];
             Refresh();
             RefreshUpcomingChecks();
             RefreshForecast();
+            NotifySelectionSummary();
             NotifyDashboard();
-            OnPropertyChanged(nameof(WeightedText));
         }
 
-        return (updated, selectedChecks.Count - updated);
-    }
-
-    public void Notify()
-    {
-        OnPropertyChanged(nameof(SelectedTotal));
-        OnPropertyChanged(nameof(SelectedCountText));
-        OnPropertyChanged(nameof(SelectedIncomingCountText));
-        OnPropertyChanged(nameof(WeightedText));
-        OnPropertyChanged(nameof(SimulatedGap));
-        NotifyDashboard();
+        return (updated, skipped);
     }
 
     private static string TopName<TGroup>(IEnumerable<TGroup> groups, Func<TGroup, decimal> amount)
@@ -211,57 +236,46 @@ public sealed class MainViewModel : INotifyPropertyChanged
         return leader is null ? "—" : $"{leader.Key}  ·  {PersianFormatting.Money(amount(leader))}";
     }
 
-    private static bool CanTransition(CheckItem check, string targetStatus)
-    {
-        if (check.Status == targetStatus)
-            return false;
-
-        if (targetStatus == CheckStatuses.Suspended)
-            return check.Status == CheckStatuses.Pending;
-        if (targetStatus == CheckStatuses.Pending)
-            return check.Status == CheckStatuses.Suspended;
-        if (targetStatus == CheckStatuses.Collected)
-            return check.Kind == CheckKind.دریافتی
-                   && (check.Status == CheckStatuses.Pending || check.Status == CheckStatuses.Suspended);
-        if (targetStatus == CheckStatuses.Paid)
-            return check.Kind == CheckKind.پرداختی
-                   && (check.Status == CheckStatuses.Pending || check.Status == CheckStatuses.Suspended);
-        if (targetStatus == CheckStatuses.Returned)
-            return check.Status == CheckStatuses.Pending || check.Status == CheckStatuses.Suspended;
-
-        return false;
-    }
-
     private void SetSalesChartHeights()
     {
-        var maximum = Sales.Select(sale => sale.Amount).DefaultIfEmpty(1).Max();
-        foreach (var sale in Sales)
+        var maximum = SalesChart.Select(point => point.Amount).DefaultIfEmpty(1).Max();
+        foreach (var point in SalesChart)
         {
-            var ratio = maximum <= 0 ? 0 : (double)(sale.Amount / maximum);
-            sale.ChartBarHeight = Math.Clamp(20 + (ratio * 84), 20, 104);
+            var ratio = maximum <= 0 ? 0 : (double)(point.Amount / maximum);
+            point.ChartBarHeight = Math.Clamp(20 + (ratio * 84), 20, 104);
         }
     }
 
     private void Refresh()
     {
+        var normalizedQuery = PersianText.NormalizeForSearch(Query);
         IEnumerable<CheckItem> results = Checks;
 
-        if (!string.IsNullOrWhiteSpace(Query))
+        if (normalizedQuery.Length > 0)
         {
             results = results.Where(check =>
-                $"{check.Number} {check.Party} {check.Kind} {check.Bank} {check.Status}"
-                    .Contains(Query.Trim(), StringComparison.OrdinalIgnoreCase));
+            {
+                var searchable = PersianText.NormalizeForSearch(
+                    $"{check.Number} {check.Party} {check.Kind} {check.Bank} {check.Status} " +
+                    $"{check.Amount} {check.DueDateText} {check.Risk}");
+                return searchable.Contains(normalizedQuery, StringComparison.Ordinal);
+            });
         }
 
         if (SelectedCheckType != AllTypes)
-            results = results.Where(check => string.Equals(check.Kind.ToString(), SelectedCheckType, StringComparison.Ordinal));
+        {
+            results = results.Where(check => string.Equals(
+                check.Kind.ToString(), SelectedCheckType, StringComparison.Ordinal));
+        }
 
         if (SelectedStatus != AllStatuses)
             results = results.Where(check => string.Equals(check.Status, SelectedStatus, StringComparison.Ordinal));
 
+        var matchingChecks = results.ToList();
         FilteredChecks.Clear();
-        foreach (var check in results)
+        foreach (var check in matchingChecks)
             FilteredChecks.Add(check);
+        OnPropertyChanged(nameof(HasNoFilteredChecks));
     }
 
     private void RefreshUpcomingChecks()
@@ -282,6 +296,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
         foreach (var point in service.BuildRadar(selectedChecks, (int)ShiftDays))
             Radar.Add(point);
         OnPropertyChanged(nameof(SimulatedGap));
+    }
+
+    private void NotifySelectionSummary()
+    {
+        OnPropertyChanged(nameof(SelectedTotal));
+        OnPropertyChanged(nameof(SelectedCountText));
+        OnPropertyChanged(nameof(WeightedText));
     }
 
     private void NotifyDashboard()

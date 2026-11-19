@@ -1,5 +1,7 @@
+#ifndef MyAppVersion
+#define MyAppVersion "1.0.2"
+#endif
 #define MyAppName "MEELANO Executive Console"
-#define MyAppVersion "1.0.1"
 #define MyAppPublisher "MEELANO"
 #define MyAppExeName "MeelanoExecutiveConsole.exe"
 
@@ -25,6 +27,8 @@ DisableProgramGroupPage=yes
 Compression=lzma2/ultra64
 SolidCompression=yes
 SetupLogging=yes
+CloseApplications=yes
+RestartApplications=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

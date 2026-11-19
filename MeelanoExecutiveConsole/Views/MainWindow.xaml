@@ -5,8 +5,8 @@
         Title="MEELANO | کنسول مدیران"
         Width="1380"
         Height="820"
-        MinWidth="980"
-        MinHeight="650"
+        MinWidth="780"
+        MinHeight="460"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         ResizeMode="CanResize"
@@ -115,6 +115,8 @@
                             </StackPanel>
                             <TextBlock Text="اطلاعات ساختگی و درون‌حافظه‌ای؛ اتصال به سامانه یا پایگاه داده برقرار نیست."
                                        Foreground="{StaticResource TextMutedBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" />
+                            <TextBlock Text="نسخهٔ ۱.۰.۲ · نمایشی" Foreground="{StaticResource GoldBrush}"
+                                       FontSize="10" Margin="0,8,0,0" />
                         </StackPanel>
                     </Border>
                 </Grid>
@@ -247,13 +249,13 @@
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel Grid.Column="0">
                                                     <TextBlock Text="روند فروش" FontSize="16" FontWeight="Bold" />
-                                                    <TextBlock Text="۶ روز نمونه · مبالغ به میلیون ریال" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
+                                                    <TextBlock Text="تجمیع فروش هر روز · میلیون ریال" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
                                                 </StackPanel>
                                                 <TextBlock Grid.Column="1" Text="{Binding SalesTotal}" HorizontalAlignment="Left" VerticalAlignment="Top"
                                                            Foreground="{StaticResource GoldLightBrush}" FontWeight="SemiBold" FontSize="11" />
                                             </Grid>
                                             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                                                <ItemsControl ItemsSource="{Binding Sales}" Height="166">
+                                                <ItemsControl ItemsSource="{Binding SalesChart}" Height="166">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
                                                             <StackPanel Orientation="Horizontal" />
@@ -400,29 +402,34 @@
                                 </WrapPanel>
                             </Border>
 
-                            <DataGrid x:Name="ChecksGrid" Grid.Row="2" ItemsSource="{Binding FilteredChecks}"
-                                      SelectionMode="Extended" SelectionUnit="FullRow" SelectionChanged="ChecksGrid_SelectionChanged"
-                                      CanUserSortColumns="True" CanUserReorderColumns="False">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="شماره" Binding="{Binding Number}" Width="105" />
-                                    <DataGridTextColumn Header="نوع" Binding="{Binding Kind}" Width="86" />
-                                    <DataGridTextColumn Header="طرف حساب" Binding="{Binding Party}" Width="*" MinWidth="125" />
-                                    <DataGridTextColumn Header="بانک" Binding="{Binding Bank}" Width="85" />
-                                    <DataGridTextColumn Header="مبلغ" Binding="{Binding AmountText}" Width="160" />
-                                    <DataGridTextColumn Header="سررسید · میلادی" Binding="{Binding DueDateText}" Width="120" />
-                                    <DataGridTemplateColumn Header="وضعیت" Width="115">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <Border Background="#1B2B29" BorderBrush="#314943" BorderThickness="1" CornerRadius="8" Padding="8,4"
-                                                        HorizontalAlignment="Right">
-                                                    <TextBlock Text="{Binding Status}" Foreground="{StaticResource GoldLightBrush}" FontSize="11" />
-                                                </Border>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                    <DataGridTextColumn Header="ریسک · دمو" Binding="{Binding RiskText}" Width="90" />
-                                </DataGrid.Columns>
-                            </DataGrid>
+                            <Grid Grid.Row="2">
+                                <DataGrid x:Name="ChecksGrid" ItemsSource="{Binding FilteredChecks}"
+                                          SelectionMode="Extended" SelectionUnit="FullRow" SelectionChanged="ChecksGrid_SelectionChanged"
+                                          CanUserSortColumns="True" CanUserReorderColumns="False">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="شماره" Binding="{Binding Number}" Width="105" />
+                                        <DataGridTextColumn Header="نوع" Binding="{Binding Kind}" Width="86" />
+                                        <DataGridTextColumn Header="طرف حساب" Binding="{Binding Party}" Width="*" MinWidth="125" />
+                                        <DataGridTextColumn Header="بانک" Binding="{Binding Bank}" Width="85" />
+                                        <DataGridTextColumn Header="مبلغ" Binding="{Binding AmountText}" Width="160" />
+                                        <DataGridTextColumn Header="سررسید · میلادی" Binding="{Binding DueDateText}" Width="120" />
+                                        <DataGridTemplateColumn Header="وضعیت" Width="115">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="#1B2B29" BorderBrush="#314943" BorderThickness="1" CornerRadius="8" Padding="8,4"
+                                                            HorizontalAlignment="Right">
+                                                        <TextBlock Text="{Binding Status}" Foreground="{StaticResource GoldLightBrush}" FontSize="11" />
+                                                    </Border>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTextColumn Header="ریسک · دمو" Binding="{Binding RiskText}" Width="90" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <TextBlock Text="موردی با این معیارها پیدا نشد" FontSize="14" Foreground="{StaticResource TextMutedBrush}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                                           Visibility="{Binding HasNoFilteredChecks, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            </Grid>
 
                             <Border Grid.Row="3" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1"
                                     CornerRadius="15" Padding="13" Margin="0,10,0,0">
@@ -525,7 +532,7 @@
                                         </StackPanel>
                                     </Grid>
                                     <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,4,0,0">
-                                        <ItemsControl ItemsSource="{Binding Sales}" Height="116">
+                                        <ItemsControl ItemsSource="{Binding SalesChart}" Height="116">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
                                                     <StackPanel Orientation="Horizontal" />

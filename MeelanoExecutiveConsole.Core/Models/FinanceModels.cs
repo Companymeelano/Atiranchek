@@ -13,18 +13,21 @@ public static class CheckStatuses
     public const string Paid = "پرداخت‌شده";
     public const string Returned = "برگشتی";
     public const string Suspended = "معلق";
+
+    public static IReadOnlyList<string> All { get; } = Array.AsReadOnly(
+        new[] { Pending, Collected, Paid, Returned, Suspended });
 }
 
 public sealed class CheckItem
 {
-    public string Number { get; set; } = "";
-    public CheckKind Kind { get; set; }
-    public string Party { get; set; } = "";
-    public decimal Amount { get; set; }
-    public DateTime DueDate { get; set; }
+    public string Number { get; init; } = "";
+    public CheckKind Kind { get; init; }
+    public string Party { get; init; } = "";
+    public decimal Amount { get; init; }
+    public DateTime DueDate { get; init; }
     public string Status { get; set; } = CheckStatuses.Pending;
-    public int Risk { get; set; }
-    public string Bank { get; set; } = "";
+    public int Risk { get; init; }
+    public string Bank { get; init; } = "";
 
     public string AmountText => PersianFormatting.Money(Amount);
     public string DueDateText => PersianFormatting.GregorianDate(DueDate);
@@ -33,17 +36,29 @@ public sealed class CheckItem
 
 public sealed class SaleItem
 {
-    public DateTime Date { get; set; }
-    public string Customer { get; set; } = "";
-    public decimal Amount { get; set; }
-    public decimal Profit { get; set; }
-    public string CollectionStatus { get; set; } = "";
-    public string Seller { get; set; } = "";
-    public double ChartBarHeight { get; set; }
+    public DateTime Date { get; init; }
+    public string Customer { get; init; } = "";
+    public decimal Amount { get; init; }
+    public decimal Profit { get; init; }
+    public string CollectionStatus { get; init; } = "";
+    public string Seller { get; init; } = "";
 
     public string AmountText => PersianFormatting.Money(Amount);
     public string ProfitText => PersianFormatting.Money(Profit);
     public string DateText => PersianFormatting.GregorianDate(Date);
+}
+
+public sealed class SalesDayPoint
+{
+    public SalesDayPoint(DateTime date, decimal amount)
+    {
+        Date = date.Date;
+        Amount = amount;
+    }
+
+    public DateTime Date { get; }
+    public decimal Amount { get; }
+    public double ChartBarHeight { get; set; }
     public string ShortDateText => PersianFormatting.GregorianShortDate(Date);
     public string ChartAmountText => PersianFormatting.CompactMillions(Amount);
 }

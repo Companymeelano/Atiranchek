@@ -1,11 +1,14 @@
 using System.Globalization;
 using System.IO;
+using System.Security;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
 using MeelanoExecutiveConsole.Models;
+using MeelanoExecutiveConsole.Services;
 using MeelanoExecutiveConsole.ViewModels;
 using Microsoft.Win32;
 
@@ -34,7 +37,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        SectionTabs.SelectedIndex = index;
+        if (index >= 0 && index < SectionTabs.Items.Count)
+            SectionTabs.SelectedIndex = index;
     }
 
     private void ChecksGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -51,7 +55,6 @@ public partial class MainWindow : Window
         }
 
         var result = vm.ApplySelectedStatus(targetStatus);
-        ChecksGrid.Items.Refresh();
         var message = result.Updated == 0
             ? "برای این عملیات، وضعیت یا نوع چک انتخاب‌شده معتبر نیست."
             : $"وضعیت {PersianFormatting.Number(result.Updated)} چک در نسخهٔ نمایشی تغییر کرد."
@@ -68,83 +71,68 @@ public partial class MainWindow : Window
 
     private void ChecksCsv_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new SaveFileDialog
-        {
-            Filter = "CSV UTF-8 (*.csv)|*.csv",
-            FileName = "meelano-checks.csv",
-            AddExtension = true,
-            DefaultExt = ".csv"
-        };
-
+        var dialog = CreateCsvSaveDialog("meelano-checks.csv");
         if (dialog.ShowDialog() != true)
             return;
 
         var rows = vm.FilteredChecks.Select(check => new[]
         {
-            check.Number,
-            check.Kind.ToString(),
-            check.Party,
-            check.Bank,
-            check.Amount.ToString(CultureInfo.InvariantCulture),
-            check.DueDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-            check.Status,
-            check.Risk.ToString(CultureInfo.InvariantCulture)
+            CsvCell.Text(check.Number),
+            CsvCell.Text(check.Kind.ToString()),
+            CsvCell.Text(check.Party),
+            CsvCell.Text(check.Bank),
+            CsvCell.Number(check.Amount),
+            CsvCell.Text(check.DueDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
+            CsvCell.Text(check.Status),
+            CsvCell.Number(check.Risk)
         });
-        ExportCsv(dialog.FileName,
-            BuildCsv(["شماره", "نوع", "طرف حساب", "بانک", "مبلغ (ریال)", "سررسید میلادی", "وضعیت", "ریسک نمونه"], rows));
+        var content = CsvFormatter.Build(
+            ["شماره", "نوع", "طرف حساب", "بانک", "مبلغ (ریال)", "سررسید میلادی", "وضعیت", "ریسک نمونه"],
+            rows);
+        ExportCsv(dialog.FileName, content);
     }
 
     private void SalesCsv_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new SaveFileDialog
-        {
-            Filter = "CSV UTF-8 (*.csv)|*.csv",
-            FileName = "meelano-sales.csv",
-            AddExtension = true,
-            DefaultExt = ".csv"
-        };
-
+        var dialog = CreateCsvSaveDialog("meelano-sales.csv");
         if (dialog.ShowDialog() != true)
             return;
 
         var rows = vm.Sales.Select(sale => new[]
         {
-            sale.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-            sale.Customer,
-            sale.Seller,
-            sale.Amount.ToString(CultureInfo.InvariantCulture),
-            sale.Profit.ToString(CultureInfo.InvariantCulture),
-            sale.CollectionStatus
+            CsvCell.Text(sale.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
+            CsvCell.Text(sale.Customer),
+            CsvCell.Text(sale.Seller),
+            CsvCell.Number(sale.Amount),
+            CsvCell.Number(sale.Profit),
+            CsvCell.Text(sale.CollectionStatus)
         });
-        ExportCsv(dialog.FileName,
-            BuildCsv(["تاریخ میلادی", "مشتری", "فروشنده", "مبلغ (ریال)", "سود (ریال)", "وضعیت وصول"], rows));
+        var content = CsvFormatter.Build(
+            ["تاریخ میلادی", "مشتری", "فروشنده", "مبلغ (ریال)", "سود (ریال)", "وضعیت وصول"],
+            rows);
+        ExportCsv(dialog.FileName, content);
     }
 
-    private static string BuildCsv(IEnumerable<string> headers, IEnumerable<string[]> rows)
+    private static SaveFileDialog CreateCsvSaveDialog(string fileName) => new()
     {
-        var builder = new StringBuilder();
-        builder.AppendLine(string.Join(",", headers.Select(EscapeCsv)));
-        foreach (var row in rows)
-            builder.AppendLine(string.Join(",", row.Select(EscapeCsv)));
-        return builder.ToString();
-    }
-
-    private static string EscapeCsv(string value)
-    {
-        var needsQuotes = value.IndexOfAny([',', '"', '\r', '\n']) >= 0
-                          || value.StartsWith(' ') || value.EndsWith(' ');
-        return needsQuotes ? $"\"{value.Replace("\"", "\"\"")}\"" : value;
-    }
+        Filter = "CSV UTF-8 (*.csv)|*.csv",
+        FileName = fileName,
+        AddExtension = true,
+        DefaultExt = ".csv",
+        CheckPathExists = true,
+        OverwritePrompt = true
+    };
 
     private static void ExportCsv(string path, string content)
     {
         try
         {
-            // The encoding writes one UTF-8 BOM, which helps spreadsheet applications detect Persian text.
+            // A single UTF-8 BOM helps common spreadsheet applications detect Persian text.
             File.WriteAllText(path, content, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
             MessageBox.Show($"فایل CSV ذخیره شد:\n{path}", "خروجی موفق", MessageBoxButton.OK, MessageBoxImage.Information);
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
+                                           or ArgumentException or SecurityException or NotSupportedException)
         {
             MessageBox.Show($"ذخیرهٔ فایل انجام نشد.\n{exception.Message}", "خطا در خروجی", MessageBoxButton.OK, MessageBoxImage.Error);
         }
@@ -161,11 +149,31 @@ public partial class MainWindow : Window
             return;
         }
 
+        try
+        {
+            var dialog = new PrintDialog();
+            if (dialog.ShowDialog() != true)
+                return;
+
+            var document = BuildCheckReport(items, dialog.PrintableAreaWidth, dialog.PrintableAreaHeight);
+            dialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, "گزارش چک‌های میلانو");
+        }
+        catch (Exception exception)
+        {
+            MessageBox.Show($"چاپ گزارش انجام نشد.\n{exception.Message}", "خطا در چاپ", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private static FlowDocument BuildCheckReport(IReadOnlyList<CheckItem> items, double pageWidth, double pageHeight)
+    {
         var document = new FlowDocument
         {
             FlowDirection = FlowDirection.RightToLeft,
-            PagePadding = new Thickness(38),
-            FontFamily = new System.Windows.Media.FontFamily("Segoe UI")
+            PagePadding = new Thickness(34),
+            FontFamily = new FontFamily("Segoe UI"),
+            PageWidth = pageWidth,
+            PageHeight = pageHeight,
+            ColumnWidth = Math.Max(100, pageWidth - 68)
         };
         document.Blocks.Add(new Paragraph(new Run("میلانو | گزارش مرکز چک‌ها"))
         {
@@ -173,26 +181,75 @@ public partial class MainWindow : Window
             FontWeight = FontWeights.Bold,
             Margin = new Thickness(0, 0, 0, 8)
         });
-        document.Blocks.Add(new Paragraph(new Run($"تاریخ تهیه: {PersianFormatting.GregorianDate(DateTime.Today)} · میلادی"))
+        document.Blocks.Add(new Paragraph(new Run(
+            $"تاریخ تهیه: {PersianFormatting.GregorianDate(DateTime.Today)} · میلادی     |     تعداد: {PersianFormatting.Number(items.Count)}"))
         {
             FontSize = 10,
-            Foreground = System.Windows.Media.Brushes.DimGray,
+            Foreground = Brushes.DimGray,
             Margin = new Thickness(0, 0, 0, 18)
         });
 
+        var table = new Table { CellSpacing = 0 };
+        var headers = new[] { "شماره", "نوع", "طرف حساب", "بانک", "مبلغ (ریال)", "سررسید · میلادی", "وضعیت" };
+        foreach (var _ in headers)
+            table.Columns.Add(new TableColumn { Width = new GridLength(1, GridUnitType.Star) });
+
+        var group = new TableRowGroup();
+        table.RowGroups.Add(group);
+        var headingRow = new TableRow();
+        var headerBackground = new SolidColorBrush(Color.FromRgb(225, 214, 184));
+        foreach (var header in headers)
+        {
+            var cell = CreatePrintCell(header, isHeader: true);
+            cell.Background = headerBackground;
+            headingRow.Cells.Add(cell);
+        }
+        group.Rows.Add(headingRow);
+
         foreach (var check in items)
         {
-            var line = $"{check.Number}   |   {check.Kind}   |   {check.Party}   |   {check.AmountText}   |   {check.DueDateText}   |   {check.Status}";
-            document.Blocks.Add(new Paragraph(new Run(line))
+            var row = new TableRow();
+            foreach (var value in new[]
+                     {
+                         check.Number,
+                         check.Kind.ToString(),
+                         check.Party,
+                         check.Bank,
+                         check.AmountText,
+                         check.DueDateText,
+                         check.Status
+                     })
             {
-                FontSize = 11,
-                Margin = new Thickness(0, 0, 0, 8)
-            });
+                row.Cells.Add(CreatePrintCell(value));
+            }
+            group.Rows.Add(row);
         }
 
-        var dialog = new PrintDialog();
-        if (dialog.ShowDialog() == true)
-            dialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, "گزارش چک‌های میلانو");
+        document.Blocks.Add(table);
+        document.Blocks.Add(new Paragraph(new Run("داده‌های این گزارش متعلق به نسخهٔ نمایشی و غیرعملیاتی هستند."))
+        {
+            FontSize = 9,
+            Foreground = Brushes.DimGray,
+            Margin = new Thickness(0, 16, 0, 0)
+        });
+        return document;
+    }
+
+    private static TableCell CreatePrintCell(string text, bool isHeader = false)
+    {
+        var paragraph = new Paragraph(new Run(text))
+        {
+            Margin = new Thickness(0),
+            TextAlignment = TextAlignment.Right
+        };
+        return new TableCell(paragraph)
+        {
+            Padding = new Thickness(7, 5, 7, 5),
+            BorderBrush = Brushes.LightGray,
+            BorderThickness = new Thickness(0, 0, 0, 0.5),
+            FontSize = isHeader ? 10 : 9,
+            FontWeight = isHeader ? FontWeights.Bold : FontWeights.Normal
+        };
     }
 
     private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
@@ -231,18 +288,7 @@ public partial class MainWindow : Window
 
     private void ToggleWindowState()
     {
-        if (WindowState == WindowState.Maximized)
-        {
-            WindowState = WindowState.Normal;
-            var workArea = SystemParameters.WorkArea;
-            Width = Math.Min(1380, Math.Max(MinWidth, workArea.Width - 32));
-            Height = Math.Min(820, Math.Max(MinHeight, workArea.Height - 32));
-            Left = workArea.Left + Math.Max(0, (workArea.Width - Width) / 2);
-            Top = workArea.Top + Math.Max(0, (workArea.Height - Height) / 2);
-        }
-        else
-        {
-            WindowState = WindowState.Maximized;
-        }
+        // Let WPF restore the original bounds so maximizing on a secondary monitor is safe.
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
     }
 }
