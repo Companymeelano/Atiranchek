@@ -106,8 +106,6 @@ def run_tests():
     if not focused or focused[0].get('password') != 'true':
         raise RuntimeError('The password input did not receive focus.')
     adb('shell', 'input', 'text', os.environ['SQL_TEST_PASSWORD'])
-    adb('shell', 'input', 'keyevent', 'KEYCODE_BACK')
-    time.sleep(1)
     tap('بارگذاری فقط', scroll=True)
     tap('ادامه')
     find('بارگذاری موفق', tries=90)
