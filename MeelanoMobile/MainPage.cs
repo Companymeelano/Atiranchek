@@ -236,7 +236,7 @@ public sealed class MainPage : ContentPage
             }
             catch (Exception ex)
             {
-                var message = ex is InvalidOperationException && (ex.Message.Contains("نمای گزارش", StringComparison.Ordinal) || ex.Message.Contains("ستون", StringComparison.Ordinal) || ex.Message.Contains("واحد", StringComparison.Ordinal) || ex.Message.Contains("سقف محافظتی", StringComparison.Ordinal))
+                var message = ex is Microsoft.Data.SqlClient.SqlException sqlError ? SqlServerErrorMessages.ToPersian(sqlError) : ex is InvalidOperationException && (ex.Message.Contains("نمای گزارش", StringComparison.Ordinal) || ex.Message.Contains("ستون", StringComparison.Ordinal) || ex.Message.Contains("واحد", StringComparison.Ordinal) || ex.Message.Contains("سقف محافظتی", StringComparison.Ordinal))
                     ? ex.Message : "اتصال یا بارگذاری انجام نشد. IP، پورت، نام پایگاه داده، دسترسی حساب فقط‌خواندنی و قرارداد نماهای گزارش را بررسی کنید. دادهٔ قبلی تغییر نکرد.";
                 progress.Text = "بارگذاری ناموفق؛ دادهٔ قبلی حفظ شد.";
                 await DisplayAlertAsync("اتصال ناموفق", message, "باشه");
@@ -245,7 +245,15 @@ public sealed class MainPage : ContentPage
         };
         SetScroll(Card(Column(Caption("SQL Server · فقط برای آزمایش", 18, Gold, true), Caption("ارتباط رمزگذاری می‌شود اما اعتبار گواهی و هویت سرور بررسی نمی‌شود. فقط شبکهٔ ایزوله و حساب آزمایشی؛ هرگز اینترنت عمومی یا محیط عملیاتی.", 13, Gold))),
             Caption("SQL Login؛ برای هر بار تازه‌سازی مشخصات را وارد کنید. رمز و مشخصات اتصال ذخیره نمی‌شوند. نام دیتابیس لازم است؛ انتخاب جدول و ستون لازم نیست.", 13, Muted),
-            host, port, database, user, password, connect, progress,
+            host, port, database, user, password, progress,
             Caption("دو نمای MEELANO_Checks و MEELANO_Sales با قرارداد مستند لازم است. سقف موبایل ۲۵٬۰۰۰ ردیف در هر نماست؛ دادهٔ اضافه به‌جای برش پنهان رد می‌شود. Windows Authentication و جست‌وجوی شبکه در این نسخه موجود نیست.", 12, Muted));
+        // Keep the primary action accessible while the form itself scrolls on short screens.
+        var scroll = body.Children[0];
+        body.Children.Clear();
+        var form = new Grid { RowDefinitions = [new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto)] };
+        form.Add(scroll, 0, 0);
+        connect.Margin = new Thickness(16, 4, 16, 12);
+        form.Add(connect, 0, 1);
+        body.Add(form);
     }
 }
