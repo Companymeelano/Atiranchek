@@ -17,6 +17,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private string selectedCheckType = AllTypes;
     private string selectedStatus = AllStatuses;
     private double shiftDays;
+    private IReadOnlyList<CounterpartyReportService.Row> allCounterparties = Array.Empty<CounterpartyReportService.Row>();
+    private IReadOnlyList<CounterpartyReportService.Row> visibleCounterparties = Array.Empty<CounterpartyReportService.Row>();
+    private string counterpartyQuery = string.Empty;
+    private DateTime counterpartiesAsOf;
     private int alertDays = 7;
     private DateTime alertsAsOf;
     private TreasuryAnalysisService.Report treasury = null!;
@@ -51,6 +55,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         RefreshForecast();
         RefreshTreasury();
         RefreshAlerts();
+        RefreshCounterparties();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -65,6 +70,22 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<CheckAlertService.Alert> CheckAlerts { get; }
     public string AlertsDescription => $"بررسی تا {PersianFormatting.Number(alertDays)} روز آینده به‌همراه همهٔ موارد سررسیدگذشته · {PersianFormatting.PersianDate(alertsAsOf)}";
     public string AlertsCount => PersianFormatting.Number(CheckAlerts.Count);
+    public IReadOnlyList<CounterpartyReportService.Row> Counterparties => visibleCounterparties;
+    public string CounterpartyAsOf => $"تاریخ مبنا: {PersianFormatting.PersianDate(counterpartiesAsOf)}";
+    public string CounterpartyCount => PersianFormatting.Number(visibleCounterparties.Count);
+    public string CounterpartyQuery
+    {
+        get => counterpartyQuery;
+        set
+        {
+            var next = value ?? string.Empty;
+            if (next == counterpartyQuery) return;
+            counterpartyQuery = next;
+            OnPropertyChanged();
+            FilterCounterparties();
+        }
+    }
+
     public ObservableCollection<string> CheckTypeFilters { get; }
     public ObservableCollection<string> StatusFilters { get; }
 
@@ -258,6 +279,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             RefreshForecast();
             RefreshTreasury();
             RefreshAlerts();
+            RefreshCounterparties();
             NotifySelectionSummary();
             NotifyDashboard();
         }
@@ -349,6 +371,23 @@ public sealed class MainViewModel : INotifyPropertyChanged
         foreach (var alert in alerts) CheckAlerts.Add(alert);
         OnPropertyChanged(nameof(AlertsCount));
         OnPropertyChanged(nameof(AlertsDescription));
+    }
+
+    public void RefreshCounterparties()
+    {
+        counterpartiesAsOf = service.Today;
+        allCounterparties = CounterpartyReportService.Analyze(service.Checks, counterpartiesAsOf);
+        OnPropertyChanged(nameof(CounterpartyAsOf));
+        FilterCounterparties();
+    }
+
+    private void FilterCounterparties()
+    {
+        var query = PersianText.NormalizeForSearch(counterpartyQuery);
+        visibleCounterparties = query.Length == 0 ? allCounterparties : allCounterparties
+            .Where(row => PersianText.NormalizeForSearch(row.Party).Contains(query, StringComparison.Ordinal)).ToArray();
+        OnPropertyChanged(nameof(Counterparties));
+        OnPropertyChanged(nameof(CounterpartyCount));
     }
 
     private void RefreshTreasury()

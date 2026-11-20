@@ -140,6 +140,12 @@
                                 <TextBlock Grid.Column="1" Text="بانک و مغایرت" VerticalAlignment="Center" />
                             </Grid>
                         </RadioButton>
+                        <RadioButton GroupName="MainNavigation" Tag="7" Style="{StaticResource NavigationRadioStyle}" Checked="Navigation_Checked">
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="34" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <Border Width="27" Height="27" CornerRadius="8" Background="{DynamicResource GoldGradientBrush}" HorizontalAlignment="Right"><TextBlock Text="◉" Foreground="#173330" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                                <TextBlock Grid.Column="1" Text="گزارش طرف حساب" VerticalAlignment="Center" />
+                            </Grid>
+                        </RadioButton>
                     </StackPanel>
                     </ScrollViewer>
 
@@ -152,7 +158,7 @@
                             </StackPanel>
                             <TextBlock Text="{Binding DataSourceDescription}"
                                        Foreground="{DynamicResource TextMutedBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" />
-                            <TextBlock Text="نسخهٔ ۱.۱.۷ · مستقیم/نمایشی" Foreground="{DynamicResource GoldLightBrush}"
+                            <TextBlock Text="نسخهٔ ۱.۱.۸ · مستقیم/نمایشی" Foreground="{DynamicResource GoldLightBrush}"
                                        FontSize="10" Margin="0,8,0,0" />
                         </StackPanel>
                     </Border>
@@ -758,6 +764,7 @@
                                 <TextBlock Text="افق هشدار · روز (۰ تا ۹۰):" VerticalAlignment="Center" />
                                 <TextBox x:Name="AlertDaysBox" Text="7" Width="65" FlowDirection="LeftToRight" Margin="8,0" />
                                 <Button Content="اعمال و تازه‌سازی" Click="RefreshAlerts_Click" Style="{StaticResource GoldButtonStyle}" />
+                                <Button Content="CSV هشدارها" Click="AlertsCsv_Click" />
                                 <TextBlock Text="{Binding AlertsDescription}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,0" />
                                 <TextBlock Text="{Binding AlertsCount}" VerticalAlignment="Center" Foreground="{DynamicResource GoldLightBrush}" FontWeight="Bold" />
                             </WrapPanel>
@@ -782,7 +789,7 @@
                                     <TextBlock Text="ورودی‌ها فقط در حافظه هستند. تطبیق قطعی انجام نمی‌شود: ارجاع یکتا، حساب، تاریخ، جهت و مبلغ دقیقاً مقایسه می‌شوند و تمام موارد باید توسط کاربر بررسی شوند. این ابزار کامل‌بودن صورت‌حساب یا صحت ماندهٔ آغازین را تأیید نمی‌کند." Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
                                 </Border>
                                 <TextBlock Text="فرمت هر دو CSV با UTF-8: id,account,date,reference,direction,amount ؛ تاریخ میلادی YYYY-MM-DD، جهت credit/debit و مبلغ مثبت تومان. هر فایل فقط یک حساب و حداکثر ۱۰٬۰۰۰ ردیف. جزئیات در README.fa.md." Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10" />
-                                <WrapPanel><Button Content="بارگذاری CSV بانک" Click="LoadBankCsv_Click" Style="{StaticResource GoldButtonStyle}" /><Button Content="بارگذاری CSV دفتر" Click="LoadLedgerCsv_Click" /><Button Content="مقایسه دو فایل" Click="Reconcile_Click" /><Button Content="پاک‌کردن داده‌ها" Click="ClearBank_Click" /></WrapPanel>
+                                <WrapPanel><Button Content="بارگذاری CSV بانک" Click="LoadBankCsv_Click" Style="{StaticResource GoldButtonStyle}" /><Button Content="بارگذاری CSV دفتر" Click="LoadLedgerCsv_Click" /><Button Content="مقایسه دو فایل" Click="Reconcile_Click" /><Button Content="CSV نتایج مقایسه" Click="ReconcileCsv_Click" /><Button Content="پاک‌کردن داده‌ها" Click="ClearBank_Click" /></WrapPanel>
                                 <TextBlock x:Name="BankLoadStatus" Text="فایلی بارگذاری نشده است." Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,0,10" />
                                 <Border Background="{DynamicResource PanelRaisedBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="14" Padding="12" Margin="0,0,0,12">
                                     <StackPanel>
@@ -816,6 +823,39 @@
                                 </DataGrid>
                             </StackPanel>
                         </ScrollViewer>
+                    </TabItem>
+                    <TabItem Focusable="False">
+                        <Grid Margin="22,14,22,22">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="گزارش چک‌های طرف حساب" FontSize="24" FontWeight="Bold" />
+                                <TextBlock Text="نمای مدیریتی دریافتی و پرداختی در انتظار، سررسیدگذشته و برگشتی" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,12" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <Border Grid.Row="1" Background="{DynamicResource NoticeSurfaceBrush}" BorderBrush="{DynamicResource NoticeBorderBrush}" BorderThickness="1" CornerRadius="14" Padding="12" Margin="0,0,0,12">
+                                <TextBlock Text="این گزارش فقط چک‌های snapshot را نشان می‌دهد، نه ماندهٔ واقعی حساب یا کل بدهی و طلب. سررسیدگذشته یعنی پیش از تاریخ مبنا؛ امروز سررسیدگذشته نیست. برگشتی‌ها از چک‌های در انتظار جدا هستند. نام‌های دقیقاً یکسان گروه‌بندی می‌شوند و اشخاص هم‌نام از هم قابل تشخیص نیستند." Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                            </Border>
+                            <WrapPanel Grid.Row="2" Margin="0,0,0,12">
+                                <TextBox Width="220" Text="{Binding CounterpartyQuery, UpdateSourceTrigger=PropertyChanged}" ToolTip="جست‌وجو در نام طرف حساب" />
+                                <Button Content="تازه‌سازی تاریخ مبنا" Click="RefreshCounterparties_Click" />
+                                <Button Content="CSV نتایج فیلترشده" Style="{StaticResource GoldButtonStyle}" Click="CounterpartyCsv_Click" />
+                                <TextBlock Text="{Binding CounterpartyAsOf}" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,0" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding CounterpartyCount}" Foreground="{DynamicResource GoldLightBrush}" FontWeight="Bold" VerticalAlignment="Center" />
+                            </WrapPanel>
+                            <DataGrid Grid.Row="3" ItemsSource="{Binding Counterparties}" CanUserReorderColumns="False" EnableRowVirtualization="True">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="طرف حساب" Binding="{Binding PartyDisplay}" Width="200" />
+                                    <DataGridTextColumn Header="تعداد دریافتی" Binding="{Binding IncomingCount}" Width="110" />
+                                    <DataGridTextColumn Header="دریافتی در انتظار" Binding="{Binding IncomingText}" SortMemberPath="IncomingPending" Width="170" />
+                                    <DataGridTextColumn Header="دریافتی سررسیدگذشته" Binding="{Binding IncomingOverdueText}" SortMemberPath="IncomingOverdue" Width="180" />
+                                    <DataGridTextColumn Header="تعداد پرداختی" Binding="{Binding OutgoingCount}" Width="110" />
+                                    <DataGridTextColumn Header="پرداختی در انتظار" Binding="{Binding OutgoingText}" SortMemberPath="OutgoingPending" Width="170" />
+                                    <DataGridTextColumn Header="پرداختی سررسیدگذشته" Binding="{Binding OutgoingOverdueText}" SortMemberPath="OutgoingOverdue" Width="180" />
+                                    <DataGridTextColumn Header="خالص چک در انتظار" Binding="{Binding NetText}" SortMemberPath="NetPending" Width="170" />
+                                    <DataGridTextColumn Header="دریافتی برگشتی" Binding="{Binding IncomingReturnedText}" SortMemberPath="IncomingReturned" Width="170" />
+                                    <DataGridTextColumn Header="پرداختی برگشتی" Binding="{Binding OutgoingReturnedText}" SortMemberPath="OutgoingReturned" Width="170" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
                     </TabItem>
                 </TabControl>
             </Grid>

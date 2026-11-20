@@ -16,6 +16,8 @@ internal static class Program
             ("Thirty-day radar includes overdue items on day zero", OverdueRadar),
             ("Treasury buckets have precise inclusive boundaries and coverage", TreasuryBuckets),
             ("Treasury status changes refresh the report", TreasuryRefresh),
+            ("Counterparty reports distinguish overdue, pending and returned", CounterpartyReport),
+            ("Counterparty filters and date refresh preserve exact grouping", CounterpartyViewModel),
             ("Bank reconciliation uses exact, unambiguous references", BankReconciliation),
             ("Bank CSV validation and conditional balance", BankCsvValidation),
             ("Check alerts include overdue and configured inclusive horizon", CheckAlerts),
@@ -135,6 +137,53 @@ internal static class Program
         vm.UpdateSelection([check]);
         Equal(1, vm.ApplySelectedStatus(CheckStatuses.Collected).Updated, "demo status changed");
         Equal(0m, vm.TreasuryBuckets[0].Incoming, "report recalculated after change");
+    }
+
+    private static void CounterpartyReport()
+    {
+        var checks = new[]
+        {
+            Check("a", CheckKind.دریافتی, 10.25m, Today.AddDays(-1), party: "الف"),
+            Check("b", CheckKind.دریافتی, 100m, Today, party: "الف"),
+            Check("c", CheckKind.پرداختی, 40m, Today.AddDays(-3), party: "الف"),
+            Check("d", CheckKind.دریافتی, 7m, Today, CheckStatuses.Returned, "الف"),
+            Check("e", CheckKind.پرداختی, 8m, Today, CheckStatuses.Returned, "الف"),
+            Check("f", CheckKind.دریافتی, 999m, Today, CheckStatuses.Collected, "الف"),
+            Check("g", CheckKind.پرداختی, 999m, Today, CheckStatuses.Suspended, "الف"),
+            Check("h", CheckKind.دریافتی, 50m, Today, party: "ب")
+        };
+        var report = CounterpartyReportService.Analyze(checks, Today.AddHours(23));
+        Equal(2, report.Count, "two exact names grouped");
+        var first = report[0];
+        Equal("الف", first.Party, "order by total pending exposure");
+        Equal(2, first.IncomingCount, "pending count only");
+        Equal(110.25m, first.IncomingPending, "incoming pending total");
+        Equal(10.25m, first.IncomingOverdue, "today excluded from overdue");
+        Equal(40m, first.OutgoingOverdue, "outgoing overdue");
+        Equal(70.25m, first.NetPending, "net is incoming minus outgoing");
+        Equal(7m, first.IncomingReturned, "returned incoming separate");
+        Equal(8m, first.OutgoingReturned, "returned outgoing separate");
+        Equal("۱۰٫۲۵ تومان", first.IncomingOverdueText, "fractional amount displayed without rounding");
+        Equal(0, CounterpartyReportService.Analyze(Array.Empty<CheckItem>(), Today).Count, "empty report");
+    }
+
+    private static void CounterpartyViewModel()
+    {
+        var date = Today;
+        var first = Check("x", CheckKind.دریافتی, 10, Today, party: "کتاب");
+        var other = Check("y", CheckKind.دریافتی, 5, Today, party: "كتاب");
+        var vm = new MainViewModel(new StubRepository([first, other]), () => date);
+        vm.CounterpartyQuery = "كِتاب";
+        Equal(2, vm.Counterparties.Count, "search normalizes while exact names remain separate");
+        Equal(0m, vm.Counterparties.First(c => c.Party == "کتاب").IncomingOverdue, "today not overdue");
+        date = Today.AddDays(1);
+        vm.RefreshCounterparties();
+        Equal(10m, vm.Counterparties.First(c => c.Party == "کتاب").IncomingOverdue, "manual refresh updates as-of date");
+        vm.UpdateSelection([first]);
+        Equal(1, vm.ApplySelectedStatus(CheckStatuses.Collected).Updated, "demo collection accepted");
+        Equal(1, vm.Counterparties.Count, "status change rebuilds current filtered report");
+        vm.CounterpartyQuery = "ناموجود";
+        Equal(0, vm.Counterparties.Count, "no matching party");
     }
 
     private static IReadOnlyList<BankReconciliationService.Entry> Csv(string body) =>

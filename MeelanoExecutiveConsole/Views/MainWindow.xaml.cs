@@ -204,6 +204,59 @@ public partial class MainWindow : Window
         OpeningBalanceBox.Clear(); OpeningDateBox.Clear(); InvalidateBalance(); UpdateBankStatus();
     }
 
+    private void RefreshCounterparties_Click(object sender, RoutedEventArgs e) => vm.RefreshCounterparties();
+
+    private void CounterpartyCsv_Click(object sender, RoutedEventArgs e)
+    {
+        if (vm.Counterparties.Count == 0) { MessageBox.Show("نتیجه‌ای برای خروجی وجود ندارد."); return; }
+        var dialog = CreateCsvSaveDialog("meelano-counterparty-checks.csv");
+        if (dialog.ShowDialog() != true) return;
+        var rows = vm.Counterparties.Select(row => new[]
+        {
+            CsvCell.Text(vm.CounterpartyAsOf), CsvCell.Text(vm.DataSourceDescription), CsvCell.Text(row.PartyDisplay),
+            CsvCell.Number(row.IncomingCount), CsvCell.Number(row.IncomingPending), CsvCell.Number(row.IncomingOverdue),
+            CsvCell.Number(row.OutgoingCount), CsvCell.Number(row.OutgoingPending), CsvCell.Number(row.OutgoingOverdue),
+            CsvCell.Number(row.NetPending), CsvCell.Number(row.IncomingReturned), CsvCell.Number(row.OutgoingReturned)
+        });
+        ExportCsv(dialog.FileName, CsvFormatter.Build(["تاریخ مبنا", "منبع", "طرف حساب", "تعداد دریافتی در انتظار", "دریافتی در انتظار (تومان)",
+            "دریافتی سررسیدگذشته (تومان)", "تعداد پرداختی در انتظار", "پرداختی در انتظار (تومان)", "پرداختی سررسیدگذشته (تومان)",
+            "خالص چک در انتظار (تومان)", "دریافتی برگشتی (تومان)", "پرداختی برگشتی (تومان)"], rows));
+    }
+
+    private void AlertsCsv_Click(object sender, RoutedEventArgs e)
+    {
+        if (vm.CheckAlerts.Count == 0) { MessageBox.Show("هشداری برای خروجی وجود ندارد."); return; }
+        var dialog = CreateCsvSaveDialog("meelano-check-alerts.csv");
+        if (dialog.ShowDialog() != true) return;
+        var rows = vm.CheckAlerts.Select(alert => new[]
+        {
+            CsvCell.Text(vm.AlertsDescription), CsvCell.Text(vm.DataSourceDescription), CsvCell.Text(alert.Number),
+            CsvCell.Text(alert.Kind), CsvCell.Text(alert.Party), CsvCell.Text(alert.DueDate),
+            CsvCell.Text(alert.Status), CsvCell.Number(alert.Check.Amount)
+        });
+        ExportCsv(dialog.FileName, CsvFormatter.Build(["مبنای هشدار", "منبع", "شماره", "نوع", "طرف حساب", "سررسید شمسی", "زمان", "مبلغ (تومان)"], rows));
+    }
+
+    private void ReconcileCsv_Click(object sender, RoutedEventArgs e)
+    {
+        if (ReconcileGrid.ItemsSource is not IEnumerable<BankReconciliationService.Comparison> comparisons || !comparisons.Any())
+        { MessageBox.Show("ابتدا دو فایل را مقایسه کنید."); return; }
+        var dialog = CreateCsvSaveDialog("meelano-bank-comparison.csv");
+        if (dialog.ShowDialog() != true) return;
+        var rows = comparisons.Select(row => new[]
+        {
+            CsvCell.Text(row.Status), CsvCell.Text(row.Bank?.Account ?? row.Ledger?.Account), CsvCell.Text(row.Reference),
+            CsvCell.Text(row.Bank?.Id), CsvCell.Text(row.Ledger?.Id),
+            CsvCell.Text(row.Bank is null ? "" : row.Bank.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
+            CsvCell.Text(row.Ledger is null ? "" : row.Ledger.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
+            CsvCell.Text(row.Bank?.Direction), CsvCell.Text(row.Ledger?.Direction),
+            row.Bank is null ? CsvCell.Text("") : CsvCell.Number(row.Bank.Amount),
+            row.Ledger is null ? CsvCell.Text("") : CsvCell.Number(row.Ledger.Amount)
+        });
+        ExportCsv(dialog.FileName, CsvFormatter.Build(["نتیجه نیازمند بررسی", "حساب", "ارجاع", "شناسه بانک", "شناسه دفتر", "تاریخ بانک میلادی",
+            "تاریخ دفتر میلادی", "جهت بانک", "جهت دفتر", "مبلغ بانک (تومان)", "مبلغ دفتر (تومان)"], rows));
+    }
+
     private void ChecksCsv_Click(object sender, RoutedEventArgs e)
     {
         var dialog = CreateCsvSaveDialog("meelano-checks.csv");
