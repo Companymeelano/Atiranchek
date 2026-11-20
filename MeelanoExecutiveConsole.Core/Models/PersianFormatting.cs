@@ -15,6 +15,13 @@ public static class PersianFormatting
 
     public static string Money(decimal value) => $"{Number(value)} تومان";
 
+    /// <summary>Displays the full decimal value without rounding fractional tomans.</summary>
+    public static string MoneyExact(decimal value)
+    {
+        var text = value.ToString("0.############################", CultureInfo.InvariantCulture).Replace('.', '٫');
+        return $"{LocalizeDigits(text)} تومان";
+    }
+
     public static string PersianDate(DateTime value)
     {
         if (value < Calendar.MinSupportedDateTime || value > Calendar.MaxSupportedDateTime)

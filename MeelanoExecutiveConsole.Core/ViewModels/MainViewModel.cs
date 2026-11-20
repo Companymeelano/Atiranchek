@@ -17,6 +17,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private string selectedCheckType = AllTypes;
     private string selectedStatus = AllStatuses;
     private double shiftDays;
+    private int alertDays = 7;
+    private DateTime alertsAsOf;
     private TreasuryAnalysisService.Report treasury = null!;
 
     public MainViewModel(IRepository? repository = null, Func<DateTime>? todayProvider = null)
@@ -38,6 +40,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         UpcomingChecks = new ObservableCollection<CheckItem>();
         Radar = new ObservableCollection<RadarPoint>();
         TreasuryBuckets = new ObservableCollection<TreasuryAnalysisService.Bucket>();
+        CheckAlerts = new ObservableCollection<CheckAlertService.Alert>();
         CheckTypeFilters = new ObservableCollection<string>(
             [AllTypes, CheckKind.دریافتی.ToString(), CheckKind.پرداختی.ToString()]);
         StatusFilters = new ObservableCollection<string>([AllStatuses, .. CheckStatuses.All]);
@@ -47,6 +50,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         RefreshUpcomingChecks();
         RefreshForecast();
         RefreshTreasury();
+        RefreshAlerts();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -58,6 +62,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<CheckItem> UpcomingChecks { get; }
     public ObservableCollection<RadarPoint> Radar { get; }
     public ObservableCollection<TreasuryAnalysisService.Bucket> TreasuryBuckets { get; }
+    public ObservableCollection<CheckAlertService.Alert> CheckAlerts { get; }
+    public string AlertsDescription => $"بررسی تا {PersianFormatting.Number(alertDays)} روز آینده به‌همراه همهٔ موارد سررسیدگذشته · {PersianFormatting.PersianDate(alertsAsOf)}";
+    public string AlertsCount => PersianFormatting.Number(CheckAlerts.Count);
     public ObservableCollection<string> CheckTypeFilters { get; }
     public ObservableCollection<string> StatusFilters { get; }
 
@@ -250,6 +257,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             RefreshUpcomingChecks();
             RefreshForecast();
             RefreshTreasury();
+            RefreshAlerts();
             NotifySelectionSummary();
             NotifyDashboard();
         }
@@ -324,6 +332,23 @@ public sealed class MainViewModel : INotifyPropertyChanged
         foreach (var point in service.BuildRadar(selectedChecks, (int)ShiftDays))
             Radar.Add(point);
         OnPropertyChanged(nameof(SimulatedGap));
+    }
+
+    public void SetAlertDays(int days)
+    {
+        if (days is < 0 or > 90) throw new ArgumentOutOfRangeException(nameof(days));
+        alertDays = days;
+        RefreshAlerts();
+    }
+
+    private void RefreshAlerts()
+    {
+        alertsAsOf = service.Today;
+        var alerts = CheckAlertService.Create(service.Checks, alertsAsOf, alertDays);
+        CheckAlerts.Clear();
+        foreach (var alert in alerts) CheckAlerts.Add(alert);
+        OnPropertyChanged(nameof(AlertsCount));
+        OnPropertyChanged(nameof(AlertsDescription));
     }
 
     private void RefreshTreasury()

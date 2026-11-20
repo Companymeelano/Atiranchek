@@ -1,4 +1,5 @@
 using System.IO;
+using System.Globalization;
 using System.Security;
 using System.Text;
 using System.Windows;
@@ -17,6 +18,8 @@ namespace MeelanoExecutiveConsole.Views;
 public partial class MainWindow : Window
 {
     private MainViewModel vm = new();
+    private IReadOnlyList<BankReconciliationService.Entry>? bankEntries;
+    private IReadOnlyList<BankReconciliationService.Entry>? ledgerEntries;
 
     public MainWindow()
     {
@@ -51,6 +54,7 @@ public partial class MainWindow : Window
             return;
 
         vm = new MainViewModel(repository);
+        AlertDaysBox.Text = "7";
         DataContext = vm;
         ChecksGrid.UnselectAll();
         SectionTabs.SelectedIndex = 0;
@@ -107,6 +111,98 @@ public partial class MainWindow : Window
     private void Return_Click(object sender, RoutedEventArgs e) => ApplyStatus(CheckStatuses.Returned);
     private void Suspend_Click(object sender, RoutedEventArgs e) => ApplyStatus(CheckStatuses.Suspended);
     private void Resume_Click(object sender, RoutedEventArgs e) => ApplyStatus(CheckStatuses.Pending);
+
+    private void RefreshAlerts_Click(object sender, RoutedEventArgs e)
+    {
+        var value = PersianText.NormalizeForSearch(AlertDaysBox.Text).Trim();
+        if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var days) || days is < 0 or > 90)
+        {
+            MessageBox.Show("افق هشدار باید عددی بین ۰ و ۹۰ روز باشد.", "هشدار سررسید", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        vm.SetAlertDays(days);
+    }
+
+    private void LoadBankCsv_Click(object sender, RoutedEventArgs e) => LoadEntries(isBank: true);
+    private void LoadLedgerCsv_Click(object sender, RoutedEventArgs e) => LoadEntries(isBank: false);
+
+    private void LoadEntries(bool isBank)
+    {
+        var dialog = new OpenFileDialog { Filter = "CSV UTF-8 (*.csv)|*.csv", CheckFileExists = true, Multiselect = false };
+        if (dialog.ShowDialog() != true) return;
+        // Invalidate the replaced source and old results even if the new file is invalid.
+        if (isBank) { bankEntries = null; BankEntriesGrid.ItemsSource = null; InvalidateBalance(); }
+        else ledgerEntries = null;
+        ReconcileGrid.ItemsSource = null;
+        UpdateBankStatus();
+        try
+        {
+            using var stream = new FileStream(dialog.FileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            if (stream.Length > 4 * 1024 * 1024) throw new InvalidOperationException("حجم فایل نباید بیش از ۴ مگابایت باشد.");
+            using var reader = new StreamReader(stream, new UTF8Encoding(false, true), detectEncodingFromByteOrderMarks: false);
+            var parsed = BankReconciliationService.Parse(reader);
+            if (isBank) { bankEntries = parsed; BankEntriesGrid.ItemsSource = parsed; InvalidateBalance(); }
+            else ledgerEntries = parsed;
+            ReconcileGrid.ItemsSource = null; // Never retain results from previous inputs.
+            UpdateBankStatus();
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidOperationException or DecoderFallbackException or ArgumentException)
+        {
+            var message = exception is InvalidOperationException ? exception.Message : "خواندن فایل ناموفق بود؛ دسترسی و UTF-8 بودن فایل را بررسی کنید.";
+            MessageBox.Show(message, "بارگذاری CSV", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void UpdateBankStatus() => BankLoadStatus.Text =
+        $"بانک: {(bankEntries is null ? "بارگذاری نشده" : PersianFormatting.Number(bankEntries.Count) + " ردیف")} · دفتر: {(ledgerEntries is null ? "بارگذاری نشده" : PersianFormatting.Number(ledgerEntries.Count) + " ردیف")}";
+
+    private void Reconcile_Click(object sender, RoutedEventArgs e)
+    {
+        ReconcileGrid.ItemsSource = null;
+        if (bankEntries is null || ledgerEntries is null)
+        {
+            MessageBox.Show("ابتدا هر دو فایل بانک و دفتر را بارگذاری کنید.", "مغایرت‌گیری", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        try { ReconcileGrid.ItemsSource = BankReconciliationService.Compare(bankEntries, ledgerEntries); }
+        catch (InvalidOperationException exception) { MessageBox.Show(exception.Message, "مغایرت‌گیری", MessageBoxButton.OK, MessageBoxImage.Warning); }
+    }
+
+    private void CalculateBalance_Click(object sender, RoutedEventArgs e)
+    {
+        InvalidateBalance();
+        if (bankEntries is null) { MessageBox.Show("ابتدا CSV بانک را بارگذاری کنید."); return; }
+        var amount = PersianText.NormalizeForSearch(OpeningBalanceBox.Text).Trim();
+        var date = PersianText.NormalizeForSearch(OpeningDateBox.Text).Trim();
+        if (!BankReconciliationService.TryParseMoney(amount, allowSigned: true, out var opening)
+            || !DateTime.TryParseExact(date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var start))
+        {
+            MessageBox.Show("ماندهٔ آغازین را بدون جداکنندهٔ هزارگان و تاریخ را به شکل YYYY-MM-DD میلادی وارد کنید.");
+            return;
+        }
+        try
+        {
+            var result = BankReconciliationService.CalculateBalance(bankEntries, opening, start);
+            var last = bankEntries.Max(x => x.Date);
+            CalculatedBalanceText.Text = $"ماندهٔ محاسبه‌شده تا آخرین تاریخ فایل ({PersianFormatting.PersianDate(last)}): {PersianFormatting.MoneyExact(result)} · مشروط به کامل‌بودن فایل";
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or OverflowException)
+        {
+            MessageBox.Show(exception is OverflowException ? "مجموع مبالغ از محدودهٔ محاسبه خارج است." : exception.Message, "محاسبهٔ مانده", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void BalanceInput_Changed(object sender, TextChangedEventArgs e) => InvalidateBalance();
+    private void InvalidateBalance()
+    {
+        if (CalculatedBalanceText is not null) CalculatedBalanceText.Text = "مانده محاسبه نشده است.";
+    }
+    private void ClearBank_Click(object sender, RoutedEventArgs e)
+    {
+        bankEntries = null; ledgerEntries = null;
+        BankEntriesGrid.ItemsSource = null; ReconcileGrid.ItemsSource = null;
+        OpeningBalanceBox.Clear(); OpeningDateBox.Clear(); InvalidateBalance(); UpdateBankStatus();
+    }
 
     private void ChecksCsv_Click(object sender, RoutedEventArgs e)
     {

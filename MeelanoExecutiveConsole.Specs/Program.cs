@@ -16,6 +16,9 @@ internal static class Program
             ("Thirty-day radar includes overdue items on day zero", OverdueRadar),
             ("Treasury buckets have precise inclusive boundaries and coverage", TreasuryBuckets),
             ("Treasury status changes refresh the report", TreasuryRefresh),
+            ("Bank reconciliation uses exact, unambiguous references", BankReconciliation),
+            ("Bank CSV validation and conditional balance", BankCsvValidation),
+            ("Check alerts include overdue and configured inclusive horizon", CheckAlerts),
             ("Scenario shifts only selected pending incoming checks", ScenarioShift),
             ("Status transitions enforce check type and terminal states", StatusTransitions),
             ("Weighted date excludes completed checks and rounds to a whole day", WeightedDate),
@@ -132,6 +135,66 @@ internal static class Program
         vm.UpdateSelection([check]);
         Equal(1, vm.ApplySelectedStatus(CheckStatuses.Collected).Updated, "demo status changed");
         Equal(0m, vm.TreasuryBuckets[0].Incoming, "report recalculated after change");
+    }
+
+    private static IReadOnlyList<BankReconciliationService.Entry> Csv(string body) =>
+        BankReconciliationService.Parse(new StringReader("id,account,date,reference,direction,amount\n" + body));
+
+    private static void BankReconciliation()
+    {
+        var bank = Csv("b1,A,2026-11-18,R1,credit,100\n" +
+                       "b2,A,2026-11-18,R2,debit,20\n" +
+                       "b3,A,2026-11-18,R3,credit,30\n" +
+                       "b4,A,2026-11-18,R3,credit,30\n" +
+                       "b5,A,2026-11-18,,credit,1\n");
+        var ledger = Csv("l1,A,2026-11-18,R1,credit,100\n" +
+                         "l2,A,2026-11-19,R2,debit,20\n" +
+                         "l3,A,2026-11-18,R3,credit,30\n" +
+                         "l4,A,2026-11-18,R4,credit,40\n");
+        var results = BankReconciliationService.Compare(bank, ledger);
+        Equal(7, results.Count, "all entries accounted for without forced pairing");
+        Equal(1, results.Count(x => x.Status == "پیشنهاد تطبیق · بررسی"), "unique exact pair is only a proposal");
+        Equal(1, results.Count(x => x.Status == "اختلاف تاریخ/جهت/مبلغ"), "date difference detected");
+        Equal(3, results.Count(x => x.Status == "شناسهٔ ارجاع تکراری · بررسی"), "all duplicate-reference entries remain unpaired");
+        Equal(1, results.Count(x => x.Status == "فقط دفتر"), "ledger-only");
+        Equal(1, results.Count(x => x.Status == "بدون ارجاع · بررسی"), "empty reference");
+        Throws<InvalidOperationException>(() => BankReconciliationService.Compare(bank, Csv("x,B,2026-11-18,R1,credit,100\n")), "account mismatch");
+        var direction = BankReconciliationService.Compare(Csv("b,A,2026-11-18,r,credit,1\n"), Csv("l,A,2026-11-18,r,debit,1\n"));
+        Equal("اختلاف تاریخ/جهت/مبلغ", direction[0].Status, "direction mismatch");
+    }
+
+    private static void BankCsvValidation()
+    {
+        var entries = Csv("x,A,2026-11-18,\"ref,one\",credit,10.1\n" + "y,A,2026-11-19,r2,debit,3.25\n");
+        Equal("ref,one", entries[0].Reference, "quoted comma parsed");
+        Equal(106.85m, BankReconciliationService.CalculateBalance(entries, 100m, Today), "decimal-safe conditional balance");
+        Equal("۱۰٫۱ تومان", entries[0].AmountText, "fractional amounts not rounded in bank UI");
+        Throws<InvalidOperationException>(() => BankReconciliationService.CalculateBalance(entries, 100m, Today.AddDays(1)), "transactions before opening rejected");
+        Throws<InvalidOperationException>(() => Csv("x,A,2026-11-18,r,credit,1\nx,A,2026-11-18,r2,debit,2\n"), "duplicate IDs rejected");
+        Throws<InvalidOperationException>(() => Csv("x,A,2026-11-18,r,credit,1\ny,B,2026-11-18,r2,debit,2\n"), "mixed account rejected");
+        Throws<InvalidOperationException>(() => Csv("x,A,2026-02-30,r,credit,1\n"), "invalid Gregorian date rejected");
+        Throws<InvalidOperationException>(() => Csv("x,A,2026-11-18,r,credit,-1\n"), "negative amount rejected");
+        Throws<InvalidOperationException>(() => Csv("x,A,2026-11-18,r,unknown,1\n"), "unknown direction rejected");
+        Throws<InvalidOperationException>(() => Csv(""), "empty file rejected");
+        False(BankReconciliationService.TryParseMoney("0.12345678901234567890123456789", false, out _), "unrepresentable precision must not be rounded");
+        True(BankReconciliationService.TryParseMoney("-000.1250", true, out var exact), "signed opening amount accepted exactly");
+        Equal(-0.125m, exact, "opening amount exact");
+    }
+
+    private static void CheckAlerts()
+    {
+        var checks = new[] { Check("late", CheckKind.دریافتی, 10, Today.AddDays(-3)),
+            Check("today", CheckKind.پرداختی, 10, Today), Check("seven", CheckKind.دریافتی, 10, Today.AddDays(7)),
+            Check("eight", CheckKind.پرداختی, 10, Today.AddDays(8)),
+            Check("closed", CheckKind.دریافتی, 10, Today, CheckStatuses.Collected) };
+        var alerts = CheckAlertService.Create(checks, Today, 7);
+        Equal(3, alerts.Count, "overdue, today and day seven included");
+        Equal("late", alerts[0].Number, "ordered oldest first");
+        Equal(2, CheckAlertService.Create(checks, Today, 0).Count, "zero horizon includes today and overdue");
+        Throws<ArgumentOutOfRangeException>(() => CheckAlertService.Create(checks, Today, 91), "invalid horizon rejected");
+        var vm = new MainViewModel(new StubRepository(checks), () => Today);
+        vm.SetAlertDays(0);
+        Equal(2, vm.CheckAlerts.Count, "view model updates horizon");
     }
 
     private static void ScenarioShift()
