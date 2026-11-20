@@ -73,15 +73,22 @@ def run_tests():
     fill('IP یا نام میزبان SQL', '10.0.2.2')
     fill('نام پایگاه داده', 'MEELANO_TEST')
     fill('نام کاربری SQL', 'meelanoci')
-    # Android obscures password-field hints in its accessibility tree. Move focus from
-    # the username with TAB instead of searching or exposing the password text.
-    adb('shell', 'input', 'keyevent', 'KEYCODE_TAB')
-    focused = [n for n in dump().iter('node') if n.get('focused') == 'true']
-    if not focused or focused[0].get('password') != 'true':
-        raise RuntimeError('Password input did not receive focus after username.')
+    # Password hints are intentionally hidden by Android accessibility. Locate by role.
+    for attempt in range(12):
+        nodes = [n for n in dump().iter('node') if n.get('class', '').endswith('EditText') and n.get('password') == 'true']
+        if nodes:
+            bounds = list(map(int, re.findall(r'\d+', nodes[0].get('bounds', ''))))
+            if len(bounds) == 4 and bounds[3] - bounds[1] > 15:
+                adb('shell', 'input', 'tap', str((bounds[0] + bounds[2]) // 2), str((bounds[1] + bounds[3]) // 2))
+                break
+        size = re.findall(r'(\d+)x(\d+)', adb('shell', 'wm', 'size'))[-1]
+        width, height = map(int, size)
+        adb('shell', 'input', 'swipe', str(width - 6), str(int(height * .75)), str(width - 6), str(int(height * .3)), '400')
+        time.sleep(1)
+    else:
+        raise RuntimeError('Password input is not visible after scrolling.')
     adb('shell', 'input', 'text', os.environ['SQL_TEST_PASSWORD'])
-    adb('shell', 'input', 'keyevent', 'KEYCODE_TAB')
-    adb('shell', 'input', 'keyevent', 'KEYCODE_ENTER')
+    tap('بارگذاری فقط', scroll=True)
     tap('ادامه')
     find('بارگذاری موفق', tries=90)
     tap('باشه')
