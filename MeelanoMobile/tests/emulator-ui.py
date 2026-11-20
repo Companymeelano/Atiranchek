@@ -31,7 +31,7 @@ def find(text, tries=8, scroll=False):
                 print('::warning title=Scrolling for ' + text + '::' + ' | '.join([x for x in visible if x] + edits)[:900].replace('\n', ' '), flush=True)
             size = re.findall(r'(\d+)x(\d+)', adb('shell', 'wm', 'size'))[-1]
             width, height = map(int, size)
-            adb('shell', 'input', 'swipe', str(width - 6), str(int(height * .75)), str(width - 6), str(int(height * .30)), '400')
+            adb('shell', 'input', 'swipe', str(width // 2), str(int(height * .75)), str(width // 2), str(int(height * .30)), '400')
         time.sleep(1)
     raise RuntimeError(f'Could not find expected UI label: {text}')
 
@@ -83,13 +83,11 @@ def run_tests():
                 break
         size = re.findall(r'(\d+)x(\d+)', adb('shell', 'wm', 'size'))[-1]
         width, height = map(int, size)
-        adb('shell', 'input', 'swipe', str(width - 6), str(int(height * .75)), str(width - 6), str(int(height * .3)), '400')
+        adb('shell', 'input', 'swipe', str(width // 2), str(int(height * .75)), str(width // 2), str(int(height * .3)), '400')
         time.sleep(1)
     else:
         raise RuntimeError('Password input is not visible after scrolling.')
     adb('shell', 'input', 'text', os.environ['SQL_TEST_PASSWORD'])
-    # The on-screen keyboard covers the button on the emulator.
-    adb('shell', 'input', 'keyevent', 'KEYCODE_BACK')
     tap('بارگذاری فقط', scroll=True)
     tap('ادامه')
     find('بارگذاری موفق', tries=90)
