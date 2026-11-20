@@ -88,6 +88,8 @@ def run_tests():
     else:
         raise RuntimeError('Password input is not visible after scrolling.')
     adb('shell', 'input', 'text', os.environ['SQL_TEST_PASSWORD'])
+    # The on-screen keyboard covers the button on the emulator.
+    adb('shell', 'input', 'keyevent', 'KEYCODE_BACK')
     tap('بارگذاری فقط', scroll=True)
     tap('ادامه')
     find('بارگذاری موفق', tries=90)
