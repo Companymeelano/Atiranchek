@@ -17,7 +17,7 @@ def dump():
 
 
 def find(text, tries=8, scroll=False):
-    for _ in range(tries):
+    for attempt in range(tries):
         root = dump()
         for node in root.iter('node'):
             if text in (node.get('text', '') + ' ' + node.get('content-desc', '')):
@@ -25,7 +25,13 @@ def find(text, tries=8, scroll=False):
                 if len(bounds) == 4 and bounds[2] > bounds[0] and bounds[3] > bounds[1]:
                     return ((bounds[0] + bounds[2]) // 2, (bounds[1] + bounds[3]) // 2)
         if scroll:
-            adb('shell', 'input', 'swipe', '500', '1600', '500', '650', '400')
+            if attempt == 0:
+                visible = [n.get('text', '') or n.get('content-desc', '') for n in root.iter('node') if not n.get('class', '').endswith('EditText')]
+                edits = [f"EditText:{n.get('bounds', '')}:password={n.get('password', '')}" for n in root.iter('node') if n.get('class', '').endswith('EditText')]
+                print('::warning title=Scrolling for ' + text + '::' + ' | '.join([x for x in visible if x] + edits)[:900].replace('\n', ' '), flush=True)
+            size = re.findall(r'(\d+)x(\d+)', adb('shell', 'wm', 'size'))[-1]
+            width, height = map(int, size)
+            adb('shell', 'input', 'swipe', str(width // 2), str(int(height * .7)), str(width // 2), str(int(height * .3)), '400')
         time.sleep(1)
     raise RuntimeError(f'Could not find expected UI label: {text}')
 
@@ -95,6 +101,9 @@ except Exception as exc:
             if text:
                 labels.append(text[:100])
         print('::error title=Visible UI::' + ' | '.join(labels)[:1200].replace('\n', ' '), flush=True)
+        crashes = adb('logcat', '-d', '-s', 'AndroidRuntime:E')
+        if 'FATAL EXCEPTION' in crashes:
+            print('::error title=Android crash::' + crashes[-3000:].replace('\n', ' ')[:2000], flush=True)
     except Exception:
         pass
     raise
