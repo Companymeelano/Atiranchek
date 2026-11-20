@@ -332,10 +332,13 @@ public sealed class SqlServerDataService
         string database,
         SqlImportMapping mapping,
         IProgress<SqlServerProgress>? progress = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        int maximumRowsPerTable = MaximumRowsPerTable)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(mapping);
+        if (maximumRowsPerTable is < 1 or > MaximumRowsPerTable)
+            throw new ArgumentOutOfRangeException(nameof(maximumRowsPerTable));
         ValidateMapping(mapping);
         progress?.Report(new SqlServerProgress(5, "برقراری اتصال و آماده‌سازی خواندن…"));
         await using var connection = settings.CreateConnection(database);
@@ -344,8 +347,8 @@ public sealed class SqlServerDataService
 
         var checksCount = await CountRowsAsync(connection, mapping.Checks.Table, cancellationToken).ConfigureAwait(false);
         var salesCount = await CountRowsAsync(connection, mapping.Sales.Table, cancellationToken).ConfigureAwait(false);
-        EnsureWithinLimit("چک‌ها", checksCount);
-        EnsureWithinLimit("فروش", salesCount);
+        EnsureWithinLimit("چک‌ها", checksCount, maximumRowsPerTable);
+        EnsureWithinLimit("فروش", salesCount, maximumRowsPerTable);
         var total = checked(checksCount + salesCount);
         progress?.Report(new SqlServerProgress(20, $"{total.ToString("N0", CultureInfo.InvariantCulture)} ردیف برای خواندن شناسایی شد.", 0, total));
 
@@ -685,12 +688,12 @@ public sealed class SqlServerDataService
         }
     }
 
-    private static void EnsureWithinLimit(string label, long rowCount)
+    private static void EnsureWithinLimit(string label, long rowCount, int maximumRowsPerTable)
     {
-        if (rowCount > MaximumRowsPerTable)
+        if (rowCount > maximumRowsPerTable)
         {
             throw new InvalidOperationException(
-                $"تعداد ردیف‌های {label} از سقف محافظتی {MaximumRowsPerTable.ToString("N0", CultureInfo.InvariantCulture)} بیشتر است؛ یک View گزارش محدودشده انتخاب کنید.");
+                $"تعداد ردیف‌های {label} از سقف محافظتی {maximumRowsPerTable.ToString("N0", CultureInfo.InvariantCulture)} بیشتر است؛ یک View گزارش محدودشده انتخاب کنید.");
         }
     }
 

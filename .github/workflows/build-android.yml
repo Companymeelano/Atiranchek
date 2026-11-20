@@ -1,0 +1,95 @@
+name: Build MEELANO Android demo
+
+on:
+  push:
+    branches: [arena/191d4206-atiranchek]
+    paths:
+      - 'MeelanoMobile/**'
+      - 'MeelanoExecutiveConsole.Core/**'
+      - 'MeelanoExecutiveConsole.Specs/**'
+      - '.github/workflows/build-android.yml'
+  pull_request:
+    paths:
+      - 'MeelanoMobile/**'
+      - 'MeelanoExecutiveConsole.Core/**'
+      - 'MeelanoExecutiveConsole.Specs/**'
+      - '.github/workflows/build-android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Android build and emulator startup
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            10.0.x
+            8.0.x
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+      - name: Test shared financial logic
+        run: dotnet run --project MeelanoExecutiveConsole.Specs/MeelanoExecutiveConsole.Specs.csproj -c Release
+      - name: Build Android APK
+        run: dotnet publish MeelanoMobile/MeelanoMobile.csproj -c Release -o "$GITHUB_WORKSPACE/MeelanoMobile/artifacts" -p:AndroidKeyStore=false
+      - name: Select signed APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find MeelanoMobile/artifacts -maxdepth 1 -name '*-Signed.apk')
+          test "${#files[@]}" -eq 1
+          cp "${files[0]}" MeelanoMobile/artifacts/MEELANO-Android-demo.apk
+          ls -lh MeelanoMobile/artifacts/MEELANO-Android-demo.apk
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install and launch on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            set -euo pipefail
+            adb install -r MeelanoMobile/artifacts/MEELANO-Android-demo.apk
+            adb logcat -c
+            adb shell monkey -p com.meelano.executive.mobile -c android.intent.category.LAUNCHER 1
+            sleep 25
+            adb shell pidof com.meelano.executive.mobile
+            adb shell uiautomator dump /sdcard/ui.xml
+            adb shell cat /sdcard/ui.xml > /tmp/meelano-ui.xml
+            grep -q 'MEELANO' /tmp/meelano-ui.xml
+            if adb logcat -d -s AndroidRuntime:E | grep -q 'FATAL EXCEPTION'; then adb logcat -d -s AndroidRuntime:E; exit 1; fi
+      - uses: actions/upload-artifact@v7
+        with:
+          name: MEELANO-Android-demo
+          path: MeelanoMobile/artifacts/MEELANO-Android-demo.apk
+          if-no-files-found: error
+          retention-days: 90
+  release:
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[publish-android]')
+    needs: android
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          name: MEELANO-Android-demo
+          path: apk
+      - name: Publish Android prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create android-v0.1.0-demo apk/MEELANO-Android-demo.apk \
+            --target "$GITHUB_SHA" --prerelease --title 'MEELANO Android 0.1.0 demo' \
+            --notes 'Experimental demo APK signed with a build-generated debug key. Direct SQL access is read-only and for isolated test networks only: the server certificate is not validated. See MeelanoMobile/README.fa.md for scope, security warnings and limitations.'
