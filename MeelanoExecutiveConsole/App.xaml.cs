@@ -7,6 +7,7 @@ namespace MeelanoExecutiveConsole;
 
 public partial class App : Application
 {
+    private bool verifyingLayout;
     private const long MaximumLogBytes = 1_048_576;
     private static readonly object ErrorLogLock = new();
     private static readonly string ErrorLogPath = Path.Combine(
@@ -24,10 +25,10 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         ThemeManager.Initialize();
-        if (e.Args.Contains("--verify-ui-layout", StringComparer.Ordinal))
+        verifyingLayout = e.Args.Contains("--verify-ui-layout", StringComparer.Ordinal);
+        base.OnStartup(e);
+        if (verifyingLayout)
         {
-            StartupUri = null;
-            base.OnStartup(e);
             var window = new Views.MainWindow { WindowState = WindowState.Normal, Width = 1280, Height = 800 };
             window.Loaded += (_, _) => window.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
             {
@@ -49,12 +50,18 @@ public partial class App : Application
             window.Show();
             return;
         }
-        base.OnStartup(e);
+        new Views.MainWindow().Show();
     }
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         WriteError(e.Exception);
+        if (verifyingLayout)
+        {
+            e.Handled = true;
+            Shutdown(-1);
+            return;
+        }
         try
         {
             MessageBox.Show(

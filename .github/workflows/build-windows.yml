@@ -144,7 +144,8 @@ jobs:
           $layoutProcess = Start-Process -FilePath $installedExe -ArgumentList '--verify-ui-layout' -PassThru
           if (-not $layoutProcess.WaitForExit(30000)) {
             Stop-Process -Id $layoutProcess.Id -Force
-            Fail-SmokeTest 'UI layout verification timed out.'
+            $details = if (Test-Path $log) { Get-Content $log -Raw } else { 'No diagnostic log.' }
+            Fail-SmokeTest "UI layout verification timed out: $details"
           }
           if ($layoutProcess.ExitCode -ne 0) {
             $details = if (Test-Path $log) { Get-Content $log -Raw } else { 'No diagnostic log.' }
