@@ -50,10 +50,7 @@ def section(name):
 def fill(placeholder, value):
     tap(placeholder, scroll=True)
     adb('shell', 'input', 'text', value)
-    # BACK exits the app when the IME is already hidden (e.g. hardware keyboard).
-    state = adb('shell', 'dumpsys', 'input_method')
-    if 'mInputShown=true' in state or 'isInputViewShown=true' in state:
-        adb('shell', 'input', 'keyevent', 'KEYCODE_BACK')
+    print('::notice title=Android UI input::Completed ' + placeholder, flush=True)
 
 
 def run_tests():
