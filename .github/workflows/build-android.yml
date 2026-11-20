@@ -49,7 +49,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sql_password="Demo$(openssl rand -hex 12)Z9!"
+          sql_password="Demo$(openssl rand -hex 12)Z9"
           echo "::add-mask::$sql_password"
           echo "SQL_TEST_PASSWORD=$sql_password" >> "$GITHUB_ENV"
           docker run -d --name sql-fixture -e ACCEPT_EULA=Y -e "MSSQL_SA_PASSWORD=$sql_password" \

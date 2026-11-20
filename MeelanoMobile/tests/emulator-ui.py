@@ -60,6 +60,12 @@ def section(name):
 def fill(placeholder, value):
     tap(placeholder, scroll=True)
     adb('shell', 'input', 'text', value)
+    nodes = [n for n in dump().iter('node') if n.get('class', '').endswith('EditText')]
+    if not any(n.get('focused') == 'true' and n.get('text') == value for n in nodes):
+        raise RuntimeError('The expected form field did not receive input: ' + placeholder)
+    # Input invoked the IME; hide it before locating the next field.
+    adb('shell', 'input', 'keyevent', 'KEYCODE_BACK')
+    time.sleep(1)
     print('::notice title=Android UI input::Completed ' + placeholder, flush=True)
 
 
@@ -96,16 +102,13 @@ def run_tests():
         time.sleep(1)
     else:
         raise RuntimeError('Password input is not visible after scrolling.')
+    focused = [n for n in dump().iter('node') if n.get('class', '').endswith('EditText') and n.get('focused') == 'true']
+    if not focused or focused[0].get('password') != 'true':
+        raise RuntimeError('The password input did not receive focus.')
     adb('shell', 'input', 'text', os.environ['SQL_TEST_PASSWORD'])
-    # Report only fixture field values, never the password.
-    root = dump()
-    fields = [n.get('text', '') if n.get('password') != 'true' else '[secret]' for n in root.iter('node') if n.get('class', '').endswith('EditText')]
-    bx, by = find('بارگذاری فقط', scroll=True)
-    print('::warning title=SQL form test::Fields ' + str(fields) + f'; button at {bx},{by}', flush=True)
-    adb('shell', 'input', 'tap', str(bx), str(by))
-    time.sleep(2)
-    after = [n.get('text', '') for n in dump().iter('node') if n.get('text', '') and not n.get('class', '').endswith('EditText')]
-    print('::warning title=SQL tap result::' + ' | '.join(after)[:700].replace('\n', ' '), flush=True)
+    adb('shell', 'input', 'keyevent', 'KEYCODE_BACK')
+    time.sleep(1)
+    tap('بارگذاری فقط', scroll=True)
     tap('ادامه')
     find('بارگذاری موفق', tries=90)
     tap('باشه')
