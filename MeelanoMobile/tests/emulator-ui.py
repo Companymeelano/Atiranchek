@@ -16,6 +16,18 @@ def dump():
     return ET.fromstring(adb('shell', 'cat', '/sdcard/window.xml'))
 
 
+def scroll_page(root):
+    candidates = [n for n in root.iter('node') if n.get('class', '').endswith('ScrollView')]
+    if not candidates:
+        raise RuntimeError('No scrollable form found.')
+    bounds = list(map(int, re.findall(r'\d+', candidates[0].get('bounds', ''))))
+    if len(bounds) != 4 or bounds[3] - bounds[1] < 100:
+        raise RuntimeError('Invalid form viewport for scrolling.')
+    x = (bounds[0] + bounds[2]) // 2
+    bottom, top = bounds[3] - 50, bounds[1] + 50
+    adb('shell', 'input', 'swipe', str(x), str(bottom), str(x), str(top), '500')
+
+
 def find(text, tries=8, scroll=False):
     for attempt in range(tries):
         root = dump()
@@ -29,9 +41,7 @@ def find(text, tries=8, scroll=False):
                 visible = [n.get('text', '') or n.get('content-desc', '') for n in root.iter('node') if not n.get('class', '').endswith('EditText')]
                 edits = [f"EditText:{n.get('bounds', '')}:password={n.get('password', '')}" for n in root.iter('node') if n.get('class', '').endswith('EditText')]
                 print('::warning title=Scrolling for ' + text + '::' + ' | '.join([x for x in visible if x] + edits)[:900].replace('\n', ' '), flush=True)
-            size = re.findall(r'(\d+)x(\d+)', adb('shell', 'wm', 'size'))[-1]
-            width, height = map(int, size)
-            adb('shell', 'input', 'swipe', str(width // 2), str(int(height * .75)), str(width // 2), str(int(height * .30)), '400')
+            scroll_page(root)
         time.sleep(1)
     raise RuntimeError(f'Could not find expected UI label: {text}')
 
@@ -75,15 +85,14 @@ def run_tests():
     fill('نام کاربری SQL', 'meelanoci')
     # Password hints are intentionally hidden by Android accessibility. Locate by role.
     for attempt in range(12):
-        nodes = [n for n in dump().iter('node') if n.get('class', '').endswith('EditText') and n.get('password') == 'true']
+        root = dump()
+        nodes = [n for n in root.iter('node') if n.get('class', '').endswith('EditText') and n.get('password') == 'true']
         if nodes:
             bounds = list(map(int, re.findall(r'\d+', nodes[0].get('bounds', ''))))
             if len(bounds) == 4 and bounds[3] - bounds[1] > 15:
                 adb('shell', 'input', 'tap', str((bounds[0] + bounds[2]) // 2), str((bounds[1] + bounds[3]) // 2))
                 break
-        size = re.findall(r'(\d+)x(\d+)', adb('shell', 'wm', 'size'))[-1]
-        width, height = map(int, size)
-        adb('shell', 'input', 'swipe', str(width // 2), str(int(height * .75)), str(width // 2), str(int(height * .3)), '400')
+        scroll_page(root)
         time.sleep(1)
     else:
         raise RuntimeError('Password input is not visible after scrolling.')
