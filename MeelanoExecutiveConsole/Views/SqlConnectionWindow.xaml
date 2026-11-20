@@ -9,7 +9,7 @@
         WindowStartupLocation="CenterOwner"
         FlowDirection="RightToLeft"
         Background="{DynamicResource CanvasBrush}"
-        FontFamily="Segoe UI"
+        FontFamily="{StaticResource PersianFont}"
         Loaded="Window_Loaded">
     <Grid>
         <Border Background="{DynamicResource WindowBackgroundBrush}" />
@@ -30,7 +30,7 @@
                     <StackPanel Grid.Column="0">
                         <TextBlock Text="اتصال مستقیم و فقط‌خواندنی به SQL Server" FontSize="20" FontWeight="Bold" />
                         <TextBlock Text="ورود · انتخاب دیتابیس · تحلیل خودکار · بارگذاری گزارش چک و فروش"
-                                   Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,5,0,0" />
+                                   Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" Margin="0,5,0,0" />
                     </StackPanel>
                     <Button x:Name="ThemeToggleButton" Grid.Column="1" Content="☼ تم روشن" MinWidth="112"
                             Style="{StaticResource BaseButtonStyle}" VerticalAlignment="Center" ToolTip="تغییر به تم روشن"
@@ -44,7 +44,7 @@
                         <StackPanel Margin="16">
                             <TextBlock Text="مقصد SQL Server" FontSize="17" FontWeight="Bold" />
                             <TextBlock Text="IP یا نام میزبان را اینجا وارد کنید؛ آدرس و رمز در کد برنامه یا فایل تنظیمات ذخیره نمی‌شوند."
-                                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,5,0,12" />
+                                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap" Margin="0,5,0,12" />
 
                             <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
                                     CornerRadius="16" Padding="15" Margin="0,0,0,12">
@@ -80,28 +80,28 @@
                                     </Grid.RowDefinitions>
 
                                     <StackPanel Grid.Row="0" Grid.Column="0" Margin="3">
-                                        <TextBlock Text="IP / نام میزبان" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,0,0,5" />
+                                        <TextBlock Text="IP / نام میزبان" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,0,0,5" />
                                         <TextBox x:Name="ServerHostBox" ToolTip="برای نمونه: 192.168.1.10 یا sql.example.local"
                                                  TextChanged="ConnectionField_Changed" />
                                     </StackPanel>
                                     <StackPanel Grid.Row="0" Grid.Column="1" Margin="3">
-                                        <TextBlock Text="پورت TCP" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,0,0,5" />
+                                        <TextBlock Text="پورت TCP" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,0,0,5" />
                                         <TextBox x:Name="PortBox" Text="5050" FlowDirection="LeftToRight" TextChanged="ConnectionField_Changed" />
                                     </StackPanel>
                                     <StackPanel Grid.Row="0" Grid.Column="2" Margin="3">
-                                        <TextBlock Text="روش ورود" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,0,0,5" />
+                                        <TextBlock Text="روش ورود" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,0,0,5" />
                                         <ComboBox x:Name="AuthenticationCombo" SelectionChanged="Authentication_Changed">
                                             <ComboBoxItem Content="SQL Login · ورود همین بار" Tag="sql" />
                                             <ComboBoxItem Content="Windows Authentication" Tag="windows" />
                                         </ComboBox>
                                     </StackPanel>
                                     <StackPanel Grid.Row="0" Grid.Column="3" Margin="3">
-                                        <TextBlock Text="نام کاربری SQL" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,0,0,5" />
+                                        <TextBlock Text="نام کاربری SQL" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,0,0,5" />
                                         <TextBox x:Name="UserNameBox" TextChanged="ConnectionField_Changed" />
                                     </StackPanel>
 
                                     <StackPanel x:Name="PasswordPanel" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="3,10,3,3">
-                                        <TextBlock Text="رمز SQL · این نوبت فقط در حافظه" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,0,0,5" />
+                                        <TextBlock Text="رمز SQL · این نوبت فقط در حافظه" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,0,0,5" />
                                         <PasswordBox x:Name="PasswordInput" PasswordChanged="ConnectionField_Changed" />
                                     </StackPanel>
                                     <WrapPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" VerticalAlignment="Bottom" Margin="3,10,3,3">
@@ -114,7 +114,7 @@
                                     <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" Background="{DynamicResource BrandSurfaceBrush}" BorderBrush="{DynamicResource AccentBorderBrush}"
                                             BorderThickness="1" CornerRadius="11" Padding="10" Margin="3,10,3,0">
                                         <TextBlock Text="برای رعایت حداقل دسترسی، از حسابی با مجوز SELECT فقط روی دیتابیس/نماهای گزارش استفاده کنید. رمز فقط برای همین نشست مصرف می‌شود و پس از بارگذاری پاک خواهد شد."
-                                                   Foreground="{DynamicResource GoldLightBrush}" FontSize="10" TextWrapping="Wrap" />
+                                                   Foreground="{DynamicResource GoldLightBrush}" FontSize="12" TextWrapping="Wrap" />
                                     </Border>
                                 </Grid>
                             </Border>
@@ -129,7 +129,7 @@
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Text="پایگاه داده" FontSize="14" FontWeight="Bold" />
                                         <TextBlock Text="پس از انتخاب دیتابیس، تحلیل و بارگذاری خودکار انجام می‌شود. فقط دیتابیس‌های قابل‌دسترسی نمایش داده می‌شوند."
-                                                   Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
+                                                   Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,4,0,0" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                         <ComboBox x:Name="DatabaseCombo" Width="260" IsEnabled="False" SelectionChanged="Database_SelectionChanged" />
@@ -159,10 +159,10 @@
                                         <StackPanel>
                                             <TextBlock Text="ساختار قابل‌دسترسی" FontSize="14" FontWeight="Bold" />
                                             <TextBlock Text="متادیتا نمایش داده می‌شود؛ نمای گزارش استاندارد به‌طور خودکار شناسایی و کنترل می‌شود. در صورت نقص یا ابهام، بارگذاری متوقف می‌شود."
-                                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
+                                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,4,0,0" />
                                         </StackPanel>
                                         <TextBlock x:Name="SchemaCountText" Grid.Column="1" VerticalAlignment="Center"
-                                                   Foreground="{DynamicResource GoldLightBrush}" FontSize="10" />
+                                                   Foreground="{DynamicResource GoldLightBrush}" FontSize="12" />
                                     </Grid>
                                     <DataGrid x:Name="SchemaGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True"
                                               CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False"
@@ -188,7 +188,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="برای دادهٔ زنده، از حساب SQL کم‌دسترسی با SELECT روی Viewهای گزارش استفاده کنید."
-                           Foreground="{DynamicResource TextMutedBrush}" FontSize="10" VerticalAlignment="Center" TextWrapping="Wrap" />
+                           Foreground="{DynamicResource TextMutedBrush}" FontSize="12" VerticalAlignment="Center" TextWrapping="Wrap" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Content="بستن" MinWidth="90" Click="Cancel_Click" />
                 </StackPanel>
@@ -203,7 +203,7 @@
                 </Border.Effect>
                 <StackPanel HorizontalAlignment="Stretch">
                     <TextBlock Text="در حال بارگذاری داده‌ها" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" />
-                    <TextBlock Text="MEELANO · SQL READ-ONLY" FontSize="9" Foreground="{DynamicResource GoldLightBrush}"
+                    <TextBlock Text="MEELANO · SQL READ-ONLY" FontSize="11" Foreground="{DynamicResource GoldLightBrush}"
                                HorizontalAlignment="Center" Margin="0,4,0,0" FlowDirection="LeftToRight" />
                     <Grid Width="260" Height="235" Margin="0,9,0,0">
                         <Ellipse Width="190" Height="190" Fill="{DynamicResource GlowBrush}" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -218,7 +218,7 @@
                     <TextBlock x:Name="LoadingStageText" Text="آماده‌سازی…" FontSize="12" FontWeight="SemiBold"
                                HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
                     <TextBlock Text="درصد بارگذاری بر اساس مرحله/ردیف‌های خوانده‌شده است؛ اطلاعات تجاری روی سرور تغییر نمی‌کند."
-                               Foreground="{DynamicResource TextMutedBrush}" FontSize="9" TextWrapping="Wrap" TextAlignment="Center"
+                               Foreground="{DynamicResource TextMutedBrush}" FontSize="11" TextWrapping="Wrap" TextAlignment="Center"
                                HorizontalAlignment="Center" Margin="12,8,12,12" />
                     <Button Content="لغو عملیات" HorizontalAlignment="Center" MinWidth="130" Click="CancelOperation_Click" />
                 </StackPanel>

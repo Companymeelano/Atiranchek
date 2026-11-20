@@ -13,7 +13,7 @@
         WindowState="Maximized"
         FlowDirection="RightToLeft"
         Background="{DynamicResource CanvasBrush}"
-        FontFamily="Segoe UI"
+        FontFamily="{StaticResource PersianFont}"
         KeyDown="Window_KeyDown"
         Loaded="Window_Loaded">
     <shell:WindowChrome.WindowChrome>
@@ -29,10 +29,12 @@
         <Ellipse Width="560" Height="560" HorizontalAlignment="Left" VerticalAlignment="Bottom"
                  Margin="-250,0,0,-300" Fill="{DynamicResource GlowBrush}" IsHitTestVisible="False" />
 
-        <DockPanel Margin="12" LastChildFill="True">
-            <Border DockPanel.Dock="Right"
+        <!-- DockPanel is physical LTR to keep Dock=Right on the actual right edge.
+             Child content remains RTL; dates, IPs and window controls are intentionally LTR. -->
+        <DockPanel Margin="12" LastChildFill="True" FlowDirection="LeftToRight">
+            <Border x:Name="SidebarPanel" DockPanel.Dock="Right" FlowDirection="RightToLeft"
                     Width="242"
-                    Margin="0,0,14,0"
+                    Margin="14,0,0,0"
                     Padding="16"
                     Background="{DynamicResource SidebarBrush}"
                     BorderBrush="{DynamicResource StrokeBrush}"
@@ -52,14 +54,14 @@
                         </Border>
                         <StackPanel VerticalAlignment="Center" Margin="12,0,0,0">
                             <TextBlock Text="MEELANO" FontSize="15" FontWeight="Bold" FlowDirection="LeftToRight" />
-                            <TextBlock Text="EXECUTIVE CONSOLE" FontSize="8" Foreground="{DynamicResource TextMutedBrush}"
+                            <TextBlock Text="EXECUTIVE CONSOLE" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                                        Margin="0,3,0,0" FlowDirection="LeftToRight" />
                         </StackPanel>
                     </StackPanel>
 
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel>
-                        <TextBlock Text="فضای کاری" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                        <TextBlock Text="فضای کاری" Foreground="{DynamicResource TextMutedBrush}" FontSize="13"
                                    FontWeight="Bold" Margin="12,0,12,10" />
                         <RadioButton x:Name="NavDashboard" GroupName="MainNavigation" Tag="0" IsChecked="True"
                                      Style="{StaticResource NavigationRadioStyle}" Checked="Navigation_Checked">
@@ -130,19 +132,19 @@
                         </RadioButton>
                         <RadioButton GroupName="MainNavigation" Tag="5" Style="{StaticResource NavigationRadioStyle}" Checked="Navigation_Checked">
                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="34" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                                <Border Width="27" Height="27" CornerRadius="8" Background="{DynamicResource GoldGradientBrush}" HorizontalAlignment="Right"><TextBlock Text="◷" Foreground="#173330" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                                <Border Width="27" Height="27" CornerRadius="8" Background="{DynamicResource GoldGradientBrush}" HorizontalAlignment="Right"><TextBlock FontFamily="Segoe UI Symbol" Text="◷" Foreground="#173330" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
                                 <TextBlock Grid.Column="1" Text="هشدار سررسید" VerticalAlignment="Center" />
                             </Grid>
                         </RadioButton>
                         <RadioButton GroupName="MainNavigation" Tag="6" Style="{StaticResource NavigationRadioStyle}" Checked="Navigation_Checked">
                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="34" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                                <Border Width="27" Height="27" CornerRadius="8" Background="{DynamicResource GoldGradientBrush}" HorizontalAlignment="Right"><TextBlock Text="⇄" Foreground="#173330" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                                <Border Width="27" Height="27" CornerRadius="8" Background="{DynamicResource GoldGradientBrush}" HorizontalAlignment="Right"><TextBlock FontFamily="Segoe UI Symbol" Text="⇄" Foreground="#173330" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
                                 <TextBlock Grid.Column="1" Text="بانک و مغایرت" VerticalAlignment="Center" />
                             </Grid>
                         </RadioButton>
                         <RadioButton GroupName="MainNavigation" Tag="7" Style="{StaticResource NavigationRadioStyle}" Checked="Navigation_Checked">
                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="34" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                                <Border Width="27" Height="27" CornerRadius="8" Background="{DynamicResource GoldGradientBrush}" HorizontalAlignment="Right"><TextBlock Text="◉" Foreground="#173330" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                                <Border Width="27" Height="27" CornerRadius="8" Background="{DynamicResource GoldGradientBrush}" HorizontalAlignment="Right"><TextBlock FontFamily="Segoe UI Symbol" Text="◉" Foreground="#173330" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
                                 <TextBlock Grid.Column="1" Text="گزارش طرف حساب" VerticalAlignment="Center" />
                             </Grid>
                         </RadioButton>
@@ -154,20 +156,24 @@
                         <StackPanel>
                             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
                                 <Ellipse Width="8" Height="8" Fill="{DynamicResource GreenBrush}" VerticalAlignment="Center" Margin="0,0,0,0" />
-                                <TextBlock Text="{Binding DataModeLabel}" FontWeight="Bold" Foreground="{DynamicResource GoldLightBrush}" />
+                                <TextBlock Text="{Binding DataModeLabel}" FontWeight="Bold" Foreground="{DynamicResource GoldLightBrush}" TextTrimming="CharacterEllipsis" />
                             </StackPanel>
                             <TextBlock Text="{Binding DataSourceDescription}"
-                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" />
-                            <TextBlock Text="نسخهٔ ۱.۱.۸ · مستقیم/نمایشی" Foreground="{DynamicResource GoldLightBrush}"
-                                       FontSize="10" Margin="0,8,0,0" />
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="13" TextWrapping="Wrap" Margin="0,8,0,0" />
+                            <TextBlock Text="نسخهٔ ۱.۱.۹ · مستقیم/نمایشی" Foreground="{DynamicResource GoldLightBrush}"
+                                       FontSize="12" Margin="0,8,0,0" />
+                            <WrapPanel Margin="-3,7,-3,0">
+                                <Button Content="راهنمای سریع" Style="{StaticResource QuietButtonStyle}" Click="QuickHelp_Click" />
+                                <Button Content="مجوز فونت" Style="{StaticResource QuietButtonStyle}" Click="FontLicense_Click" />
+                            </WrapPanel>
                         </StackPanel>
                     </Border>
                 </Grid>
             </Border>
 
-            <Grid>
+            <Grid x:Name="ContentArea" FlowDirection="RightToLeft">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="58" />
+                    <RowDefinition Height="66" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
@@ -175,27 +181,27 @@
                         BorderThickness="1" CornerRadius="16" Margin="0,0,0,12" MouseLeftButtonDown="TitleBar_MouseDown">
                     <Grid Margin="12,0">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" FlowDirection="RightToLeft">
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" FlowDirection="RightToLeft">
                             <Border Background="{DynamicResource BadgeSurfaceBrush}" BorderBrush="{DynamicResource BrandBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10,5">
-                                <TextBlock Text="{Binding DataModeLabel}" Foreground="{DynamicResource GoldLightBrush}" FontSize="11" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding DataModeLabel}" Foreground="{DynamicResource GoldLightBrush}" FontSize="13" FontWeight="SemiBold" />
                             </Border>
                             <Border Width="1" Height="24" Background="{DynamicResource StrokeBrush}" Margin="14,0" />
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="کنسول مدیریتی میلانو" FontWeight="Bold" FontSize="13" />
-                                <TextBlock Text="{Binding TodayDateText}" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,2,0,0" />
+                                <TextBlock Text="{Binding TodayDateText}" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,2,0,0" />
                             </StackPanel>
                         </StackPanel>
-                        <Button Grid.Column="1" Content="اتصال SQL" Style="{StaticResource GoldButtonStyle}" VerticalAlignment="Center"
+                        <Button x:Name="SqlConnectionButton" Grid.Column="0" Content="اتصال SQL" Style="{StaticResource GoldButtonStyle}" VerticalAlignment="Center"
                                 ToolTip="اتصال مستقیم، انتخاب دیتابیس و نگاشت داده‌های فقط‌خواندنی" Click="ConnectSql_Click" />
-                        <Button x:Name="ThemeToggleButton" Grid.Column="2" Content="☼ تم روشن" MinWidth="112"
+                        <Button x:Name="ThemeToggleButton" Grid.Column="1" Content="☼ تم روشن" MinWidth="112"
                                 Style="{StaticResource BaseButtonStyle}" VerticalAlignment="Center" ToolTip="تغییر به تم روشن"
                                 Click="ThemeToggle_Click" />
-                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" FlowDirection="LeftToRight">
+                        <StackPanel x:Name="WindowControls" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" FlowDirection="LeftToRight">
                             <Button Style="{StaticResource WindowButtonStyle}" Content="⛶" ToolTip="تغییر حالت تمام‌صفحه (F11)" Click="ToggleFullScreen_Click" />
                             <Button Style="{StaticResource WindowButtonStyle}" Content="—" ToolTip="کوچک‌کردن پنجره" Click="Minimize_Click" />
                             <Button Style="{StaticResource WindowButtonStyle}" Content="□" ToolTip="بزرگ‌نمایی یا بازگردانی" Click="Maximize_Click" />
@@ -213,14 +219,14 @@
                     </TabControl.Template>
 
                     <TabItem Focusable="False">
-                        <ScrollViewer x:Name="DashboardScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <Border MinHeight="{Binding ElementName=DashboardScrollViewer, Path=ViewportHeight}" Padding="22,12,22,22">
-                                <Grid>
+                        <ScrollViewer x:Name="DashboardScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <Border MinWidth="650" Padding="22,12,22,22">
+                                <Grid VerticalAlignment="Top">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
                                     <Grid Grid.Row="0" Margin="0,3,0,18">
@@ -237,7 +243,7 @@
                                                 Padding="14,10" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
                                                 <TextBlock Text="●" Foreground="{DynamicResource GreenBrush}" Margin="0,0,7,0" />
-                                                <TextBlock Text="منبع دادهٔ فعال" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" />
+                                                <TextBlock Text="منبع دادهٔ فعال" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" />
                                             </StackPanel>
                                         </Border>
                                     </Grid>
@@ -252,7 +258,7 @@
                                             <StackPanel Grid.Column="1">
                                                 <TextBlock Text="{Binding DataModeLabel}" Foreground="{DynamicResource GoldLightBrush}" FontWeight="Bold" />
                                                 <TextBlock Text="{Binding DataSourceDescription}"
-                                                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap" Margin="0,4,0,0" />
                                             </StackPanel>
                                         </Grid>
                                     </Border>
@@ -260,34 +266,34 @@
                                     <UniformGrid Grid.Row="2" Columns="4" Margin="-3,0,-3,16">
                                         <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="16" Padding="15" Margin="3">
                                             <StackPanel>
-                                                <TextBlock Text="فروش امروز" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" />
+                                                <TextBlock Text="فروش امروز" Foreground="{DynamicResource TextMutedBrush}" FontSize="13" />
                                                 <TextBlock Text="{Binding TodaySales}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                                            TextTrimming="CharacterEllipsis" ToolTip="{Binding TodaySales}" Margin="0,11,0,4" />
-                                                <TextBlock Text="مجموع فروش" Foreground="{DynamicResource BlueBrush}" FontSize="10" />
+                                                <TextBlock Text="مجموع فروش" Foreground="{DynamicResource BlueBrush}" FontSize="12" />
                                             </StackPanel>
                                         </Border>
                                         <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="16" Padding="15" Margin="3">
                                             <StackPanel>
-                                                <TextBlock Text="ورودی · ۷ روز پیش‌رو" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" />
+                                                <TextBlock Text="ورودی · ۷ روز پیش‌رو" Foreground="{DynamicResource TextMutedBrush}" FontSize="13" />
                                                 <TextBlock Text="{Binding Incoming7}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource GreenBrush}"
                                                            TextTrimming="CharacterEllipsis" ToolTip="{Binding Incoming7}" Margin="0,11,0,4" />
-                                                <TextBlock Text="چک‌های دریافتی در انتظار" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                                <TextBlock Text="چک‌های دریافتی در انتظار" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" />
                                             </StackPanel>
                                         </Border>
                                         <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="16" Padding="15" Margin="3">
                                             <StackPanel>
-                                                <TextBlock Text="خروجی · ۷ روز پیش‌رو" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" />
+                                                <TextBlock Text="خروجی · ۷ روز پیش‌رو" Foreground="{DynamicResource TextMutedBrush}" FontSize="13" />
                                                 <TextBlock Text="{Binding Outgoing7}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource RedBrush}"
                                                            TextTrimming="CharacterEllipsis" ToolTip="{Binding Outgoing7}" Margin="0,11,0,4" />
-                                                <TextBlock Text="چک‌های پرداختی در انتظار" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                                <TextBlock Text="چک‌های پرداختی در انتظار" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" />
                                             </StackPanel>
                                         </Border>
                                         <Border Background="{DynamicResource BrandSurfaceBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" CornerRadius="16" Padding="15" Margin="3">
                                             <StackPanel>
-                                                <TextBlock Text="خالص · ۷ روز پیش‌رو" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" />
+                                                <TextBlock Text="خالص · ۷ روز پیش‌رو" Foreground="{DynamicResource TextMutedBrush}" FontSize="13" />
                                                 <TextBlock Text="{Binding Net7}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource GoldLightBrush}"
                                                            TextTrimming="CharacterEllipsis" ToolTip="{Binding Net7}" Margin="0,11,0,4" />
-                                                <TextBlock Text="ورودی منهای خروجی" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                                <TextBlock Text="ورودی منهای خروجی" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" />
                                             </StackPanel>
                                         </Border>
                                     </UniformGrid>
@@ -299,7 +305,7 @@
                                         </Grid.ColumnDefinitions>
                                         <Border Grid.Column="0" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
                                                 CornerRadius="18" Padding="17" Margin="0,0,8,0">
-                                            <StackPanel VerticalAlignment="Center">
+                                            <StackPanel VerticalAlignment="Top">
                                                 <Grid Margin="0,0,0,12">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
@@ -307,13 +313,13 @@
                                                     </Grid.ColumnDefinitions>
                                                     <StackPanel Grid.Column="0">
                                                         <TextBlock Text="روند فروش" FontSize="16" FontWeight="Bold" />
-                                                        <TextBlock Text="تجمیع فروش هر روز · میلیون تومان" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
+                                                        <TextBlock Text="تجمیع فروش هر روز · میلیون تومان" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,4,0,0" />
                                                     </StackPanel>
                                                     <TextBlock Grid.Column="1" Text="{Binding SalesTotal}" HorizontalAlignment="Left" VerticalAlignment="Top"
-                                                               Foreground="{DynamicResource GoldLightBrush}" FontWeight="SemiBold" FontSize="11" />
+                                                               Foreground="{DynamicResource GoldLightBrush}" FontWeight="SemiBold" FontSize="13" />
                                                 </Grid>
                                                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                                                    <ItemsControl ItemsSource="{Binding SalesChart}" Height="220">
+                                                    <ItemsControl ItemsSource="{Binding SalesChart}" Height="225">
                                                         <ItemsControl.ItemsPanel>
                                                             <ItemsPanelTemplate>
                                                                 <StackPanel Orientation="Horizontal" />
@@ -325,15 +331,15 @@
                                                                     <Grid.RowDefinitions>
                                                                         <RowDefinition Height="174" />
                                                                         <RowDefinition Height="24" />
-                                                                        <RowDefinition Height="20" />
+                                                                        <RowDefinition Height="24" />
                                                                     </Grid.RowDefinitions>
                                                                     <Border Grid.Row="0" Background="{DynamicResource ChartTrackBrush}" CornerRadius="8" Height="164" VerticalAlignment="Bottom">
                                                                         <Border Height="{Binding ChartBarHeight}" VerticalAlignment="Bottom" CornerRadius="8"
                                                                                 Background="{DynamicResource GoldGradientBrush}" Margin="5,0" />
                                                                     </Border>
-                                                                    <TextBlock Grid.Row="1" Text="{Binding ChartAmountText}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                                    <TextBlock Grid.Row="1" Text="{Binding ChartAmountText}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                                    <TextBlock Grid.Row="2" Text="{Binding ShortDateText}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                                                                    <TextBlock Grid.Row="2" Text="{Binding ShortDateText}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                                 </Grid>
                                                             </DataTemplate>
@@ -345,7 +351,7 @@
 
                                         <Border Grid.Column="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
                                                 CornerRadius="18" Padding="17" Margin="8,0,0,0">
-                                            <StackPanel VerticalAlignment="Center">
+                                            <StackPanel VerticalAlignment="Top">
                                                 <Grid Margin="0,0,0,12">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
@@ -353,12 +359,12 @@
                                                     </Grid.ColumnDefinitions>
                                                     <StackPanel Grid.Column="0">
                                                         <TextBlock Text="سررسیدهای نزدیک" FontSize="16" FontWeight="Bold" />
-                                                        <TextBlock Text="اولویت سررسیدهای فعال" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
+                                                        <TextBlock Text="اولویت سررسیدهای فعال" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,4,0,0" />
                                                     </StackPanel>
                                                     <Border Grid.Column="1" HorizontalAlignment="Left" Background="{DynamicResource NotificationBrush}" CornerRadius="8" Padding="8,4">
                                                         <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="هشدار " Foreground="{DynamicResource GoldLightBrush}" FontSize="10" />
-                                                            <TextBlock Text="{Binding Warnings}" Foreground="{DynamicResource GoldLightBrush}" FontSize="10" />
+                                                            <TextBlock Text="هشدار " Foreground="{DynamicResource GoldLightBrush}" FontSize="12" />
+                                                            <TextBlock Text="{Binding Warnings}" Foreground="{DynamicResource GoldLightBrush}" FontSize="12" />
                                                         </StackPanel>
                                                     </Border>
                                                 </Grid>
@@ -376,12 +382,12 @@
                                                                     <Border Grid.Column="0" Background="{DynamicResource GoldBrush}" CornerRadius="2" Margin="0,2,9,2" />
                                                                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                                         <TextBlock Text="{Binding Party}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                                                                        <TextBlock Text="{Binding Kind}" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,3,0,0" />
+                                                                        <TextBlock Text="{Binding Kind}" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,3,0,0" />
                                                                     </StackPanel>
                                                                     <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                                                        <TextBlock Text="{Binding AmountText}" Foreground="{DynamicResource GoldLightBrush}" FontWeight="SemiBold" FontSize="11"
+                                                                        <TextBlock Text="{Binding AmountText}" Foreground="{DynamicResource GoldLightBrush}" FontWeight="SemiBold" FontSize="13"
                                                                                    HorizontalAlignment="Left" />
-                                                                        <TextBlock Text="{Binding DueDateText}" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,3,0,0"
+                                                                        <TextBlock Text="{Binding DueDateText}" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,3,0,0"
                                                                                    HorizontalAlignment="Left" />
                                                                     </StackPanel>
                                                                 </Grid>
@@ -409,7 +415,7 @@
                                         <Border Grid.Column="1" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1"
                                                 CornerRadius="14" Padding="14" Margin="6,0,0,0">
                                             <TextBlock Text="شاخص‌های نقدینگی، ماندهٔ آغازین صفر را فرض می‌کنند؛ پیش‌بینی، موجودی بانکی واقعی نیست."
-                                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="11" TextWrapping="Wrap" />
+                                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="13" TextWrapping="Wrap" />
                                         </Border>
                                     </Grid>
                                 </Grid>
@@ -418,7 +424,8 @@
                     </TabItem>
 
                     <TabItem Focusable="False">
-                        <Grid Margin="20,14,20,18">
+                        <ScrollViewer x:Name="ChecksViewport" Margin="20,14,20,18" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid MinWidth="650" MinHeight="620" Height="{Binding ViewportHeight, ElementName=ChecksViewport}">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
@@ -438,8 +445,8 @@
                                 <Border Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Background="{DynamicResource BadgeSurfaceBrush}" BorderBrush="{DynamicResource SoftBorderBrush}"
                                         BorderThickness="1" CornerRadius="10" Padding="10,6">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="انتخاب‌شده: " Foreground="{DynamicResource GoldLightBrush}" FontSize="11" />
-                                        <TextBlock Text="{Binding SelectedCountText}" Foreground="{DynamicResource GoldLightBrush}" FontSize="11" />
+                                        <TextBlock Text="انتخاب‌شده: " Foreground="{DynamicResource GoldLightBrush}" FontSize="13" />
+                                        <TextBlock Text="{Binding SelectedCountText}" Foreground="{DynamicResource GoldLightBrush}" FontSize="13" />
                                     </StackPanel>
                                 </Border>
                             </Grid>
@@ -470,19 +477,19 @@
                                         <DataGridTextColumn Header="نوع" Binding="{Binding Kind}" Width="86" />
                                         <DataGridTextColumn Header="طرف حساب" Binding="{Binding Party}" Width="*" MinWidth="125" />
                                         <DataGridTextColumn Header="بانک" Binding="{Binding Bank}" Width="85" />
-                                        <DataGridTextColumn Header="مبلغ · تومان" Binding="{Binding AmountText}" Width="160" />
-                                        <DataGridTextColumn Header="سررسید · شمسی" Binding="{Binding DueDateText}" Width="120" />
-                                        <DataGridTemplateColumn Header="وضعیت" Width="115">
+                                        <DataGridTextColumn Header="مبلغ · تومان" Binding="{Binding AmountText}" SortMemberPath="Amount" Width="160" />
+                                        <DataGridTextColumn Header="سررسید · شمسی" Binding="{Binding DueDateText}" SortMemberPath="DueDate" Width="120" />
+                                        <DataGridTemplateColumn Header="وضعیت" SortMemberPath="Status" Width="115">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <Border Background="{DynamicResource SelectionSurfaceBrush}" BorderBrush="{DynamicResource StatusBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="8,4"
                                                             HorizontalAlignment="Right">
-                                                        <TextBlock Text="{Binding Status}" Foreground="{DynamicResource GoldLightBrush}" FontSize="11" />
+                                                        <TextBlock Text="{Binding Status}" Foreground="{DynamicResource GoldLightBrush}" FontSize="13" />
                                                     </Border>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
-                                        <DataGridTextColumn Header="امتیاز ریسک" Binding="{Binding RiskText}" Width="90" />
+                                        <DataGridTextColumn Header="امتیاز ریسک" Binding="{Binding RiskText}" SortMemberPath="RiskSort" Width="110" />
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <TextBlock Text="موردی با این معیارها پیدا نشد" FontSize="14" Foreground="{DynamicResource TextMutedBrush}"
@@ -498,15 +505,16 @@
                                         <ColumnDefinition Width="1.85*" />
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                        <TextBlock Text="جمع انتخاب‌شده" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="جمع انتخاب‌شده" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" />
                                         <TextBlock Text="{Binding SelectedTotal}" Foreground="{DynamicResource GoldLightBrush}" FontWeight="Bold" FontSize="14" Margin="0,4,0,2" />
-                                        <TextBlock Text="{Binding WeightedText}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding WeightedText}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" TextWrapping="Wrap" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
                                         <Grid Margin="0,0,0,4">
-                                            <TextBlock Text="سناریوی جابه‌جایی سررسیدِ چک‌های دریافتیِ انتخاب‌شده" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
-                                            <TextBlock Text="{Binding ShiftDaysLabel}" HorizontalAlignment="Left" Foreground="{DynamicResource GoldLightBrush}"
-                                                       FontSize="10" FontWeight="SemiBold" />
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                            <TextBlock Text="سناریوی جابه‌جایی سررسید چک‌های دریافتی انتخاب‌شده" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                            <TextBlock Grid.Column="1" Text="{Binding ShiftDaysLabel}" Foreground="{DynamicResource GoldLightBrush}"
+                                                       FontSize="12" FontWeight="SemiBold" Margin="8,0,0,0" />
                                         </Grid>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
@@ -514,12 +522,12 @@
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="−۱۴" Grid.Column="0" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" VerticalAlignment="Center" />
+                                            <TextBlock Text="−۱۴" Grid.Column="0" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" VerticalAlignment="Center" />
                                             <Slider Grid.Column="1" Minimum="-14" Maximum="30" TickFrequency="1" IsSnapToTickEnabled="True"
                                                     Value="{Binding ShiftDays, Mode=TwoWay}" Margin="12,0" VerticalAlignment="Center" />
-                                            <TextBlock Text="+۳۰" Grid.Column="2" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" VerticalAlignment="Center" />
+                                            <TextBlock Text="+۳۰" Grid.Column="2" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" VerticalAlignment="Center" />
                                         </Grid>
-                                        <TextBlock Foreground="{DynamicResource RedBrush}" FontSize="10" Margin="0,3,0,0" TextWrapping="Wrap">
+                                        <TextBlock Foreground="{DynamicResource RedBrush}" FontSize="12" Margin="0,3,0,0" TextWrapping="Wrap">
                                             <Run Text="کمترین ماندهٔ تجمعیِ سناریو (از صفر): " />
                                             <Run Text="{Binding SimulatedGap, Mode=OneWay}" FontWeight="Bold" />
                                         </TextBlock>
@@ -527,10 +535,12 @@
                                 </Grid>
                             </Border>
                         </Grid>
+                        </ScrollViewer>
                     </TabItem>
 
                     <TabItem Focusable="False">
-                        <Grid Margin="20,14,20,18">
+                        <ScrollViewer x:Name="SalesViewport" Margin="20,14,20,18" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid MinWidth="650" MinHeight="650" Height="{Binding ViewportHeight, ElementName=SalesViewport}">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
@@ -553,19 +563,19 @@
                             <UniformGrid Grid.Row="1" Columns="3" Margin="-3,0,-3,10">
                                 <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="14" Padding="13" Margin="3">
                                     <StackPanel>
-                                        <TextBlock Text="فروش ثبت‌شده" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="فروش ثبت‌شده" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" />
                                         <TextBlock Text="{Binding SalesTotal}" Foreground="{DynamicResource GoldLightBrush}" FontWeight="Bold" FontSize="14" Margin="0,7,0,0" />
                                     </StackPanel>
                                 </Border>
                                 <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="14" Padding="13" Margin="3">
                                     <StackPanel>
-                                        <TextBlock Text="سود ثبت‌شده" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="سود ثبت‌شده" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" />
                                         <TextBlock Text="{Binding SalesProfit}" Foreground="{DynamicResource GreenBrush}" FontWeight="Bold" FontSize="14" Margin="0,7,0,0" />
                                     </StackPanel>
                                 </Border>
                                 <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="14" Padding="13" Margin="3">
                                     <StackPanel>
-                                        <TextBlock Text="بیشترین فروش بر اساس مبلغ" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="بیشترین فروش بر اساس مبلغ" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" />
                                         <TextBlock Text="{Binding TopCustomer}" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="12"
                                                    TextTrimming="CharacterEllipsis" ToolTip="{Binding TopCustomer}" Margin="0,7,0,0" />
                                     </StackPanel>
@@ -586,8 +596,8 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="مقایسهٔ فروش روزانه · ۹۰ روز اخیر" FontSize="12" FontWeight="SemiBold" />
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
-                                            <TextBlock Text="فروشندهٔ پیشتاز: " Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
-                                            <TextBlock Text="{Binding TopSeller}" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                            <TextBlock Text="فروشندهٔ پیشتاز: " Foreground="{DynamicResource TextMutedBrush}" FontSize="12" />
+                                            <TextBlock Text="{Binding TopSeller}" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" />
                                         </StackPanel>
                                     </Grid>
                                     <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,4,0,0">
@@ -602,13 +612,13 @@
                                                     <Grid Width="84" Margin="5,0">
                                                         <Grid.RowDefinitions>
                                                             <RowDefinition Height="152" />
-                                                            <RowDefinition Height="20" />
+                                                            <RowDefinition Height="24" />
                                                         </Grid.RowDefinitions>
                                                         <Border Grid.Row="0" Background="{DynamicResource ChartTrackBrush}" CornerRadius="7" Height="146" VerticalAlignment="Bottom">
                                                             <Border Height="{Binding ChartBarHeight}" VerticalAlignment="Bottom" CornerRadius="7"
                                                                     Background="{DynamicResource GoldGradientBrush}" Margin="7,0" />
                                                         </Border>
-                                                        <TextBlock Grid.Row="1" Text="{Binding ShortDateText}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
+                                                        <TextBlock Grid.Row="1" Text="{Binding ShortDateText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                                                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                     </Grid>
                                                 </DataTemplate>
@@ -620,19 +630,21 @@
 
                             <DataGrid Grid.Row="3" ItemsSource="{Binding Sales}" CanUserReorderColumns="False">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="تاریخ · شمسی" Binding="{Binding DateText}" Width="125" />
+                                    <DataGridTextColumn Header="تاریخ · شمسی" Binding="{Binding DateText}" SortMemberPath="Date" Width="135" />
                                     <DataGridTextColumn Header="مشتری" Binding="{Binding Customer}" Width="*" MinWidth="135" />
                                     <DataGridTextColumn Header="فروشنده" Binding="{Binding Seller}" Width="*" MinWidth="120" />
-                                    <DataGridTextColumn Header="مبلغ · تومان" Binding="{Binding AmountText}" Width="170" />
-                                    <DataGridTextColumn Header="سود · تومان" Binding="{Binding ProfitText}" Width="160" />
+                                    <DataGridTextColumn Header="مبلغ · تومان" Binding="{Binding AmountText}" SortMemberPath="Amount" Width="170" />
+                                    <DataGridTextColumn Header="سود · تومان" Binding="{Binding ProfitText}" SortMemberPath="Profit" Width="160" />
                                     <DataGridTextColumn Header="وضعیت وصول" Binding="{Binding CollectionStatus}" Width="120" />
                                 </DataGrid.Columns>
                             </DataGrid>
                         </Grid>
+                        </ScrollViewer>
                     </TabItem>
 
                     <TabItem Focusable="False">
-                        <Grid Margin="20,14,20,18">
+                        <ScrollViewer x:Name="RadarViewport" Margin="20,14,20,18" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid MinWidth="650" MinHeight="580" Height="{Binding ViewportHeight, ElementName=RadarViewport}">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
@@ -647,25 +659,25 @@
 
                             <Border Grid.Row="1" Background="{DynamicResource NoticeSurfaceBrush}" BorderBrush="{DynamicResource NoticeBorderBrush}" BorderThickness="1" CornerRadius="14" Padding="13" Margin="0,0,0,12">
                                 <TextBlock Text="ماندهٔ آغازین صفر فرض شده است؛ این تصویر برآورد نمونه است، نه ماندهٔ بانکی یا پیش‌بینی مبتنی بر دادهٔ واقعی. تغییر سناریو در مرکز چک‌ها فقط چک‌های دریافتیِ انتخاب‌شده را جابه‌جا می‌کند."
-                                           TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" />
+                                           TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" />
                             </Border>
 
                             <UniformGrid Grid.Row="2" Columns="3" Margin="-3,0,-3,12">
                                 <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="13" Padding="12" Margin="3">
                                     <StackPanel>
-                                        <TextBlock Text="ورودی هفت‌روزه" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="ورودی هفت‌روزه" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" />
                                         <TextBlock Text="{Binding Incoming7}" Foreground="{DynamicResource GreenBrush}" FontWeight="Bold" Margin="0,6,0,0" />
                                     </StackPanel>
                                 </Border>
                                 <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1" CornerRadius="13" Padding="12" Margin="3">
                                     <StackPanel>
-                                        <TextBlock Text="خروجی هفت‌روزه" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="خروجی هفت‌روزه" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" />
                                         <TextBlock Text="{Binding Outgoing7}" Foreground="{DynamicResource RedBrush}" FontWeight="Bold" Margin="0,6,0,0" />
                                     </StackPanel>
                                 </Border>
                                 <Border Background="{DynamicResource BrandSurfaceBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" CornerRadius="13" Padding="12" Margin="3">
                                     <StackPanel>
-                                        <TextBlock Text="خالص هفت‌روزه" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" />
+                                        <TextBlock Text="خالص هفت‌روزه" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" />
                                         <TextBlock Text="{Binding Net7}" Foreground="{DynamicResource GoldLightBrush}" FontWeight="Bold" Margin="0,6,0,0" />
                                     </StackPanel>
                                 </Border>
@@ -673,10 +685,10 @@
 
                             <DataGrid Grid.Row="3" ItemsSource="{Binding Radar}" CanUserReorderColumns="False">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="روز · شمسی" Binding="{Binding DayText}" Width="150" />
-                                    <DataGridTextColumn Header="ورودی" Binding="{Binding IncomingText}" Width="*" />
-                                    <DataGridTextColumn Header="خروجی" Binding="{Binding OutgoingText}" Width="*" />
-                                    <DataGridTemplateColumn Header="ماندهٔ تجمعی از صفر" Width="*">
+                                    <DataGridTextColumn Header="روز · شمسی" Binding="{Binding DayText}" SortMemberPath="Day" Width="150" />
+                                    <DataGridTextColumn Header="ورودی" Binding="{Binding IncomingText}" SortMemberPath="Incoming" Width="*" />
+                                    <DataGridTextColumn Header="خروجی" Binding="{Binding OutgoingText}" SortMemberPath="Outgoing" Width="*" />
+                                    <DataGridTemplateColumn Header="ماندهٔ تجمعی از صفر" SortMemberPath="Balance" Width="*">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <TextBlock Text="{Binding BalanceText}">
@@ -699,6 +711,7 @@
                                 </DataGrid.Columns>
                             </DataGrid>
                         </Grid>
+                        </ScrollViewer>
                     </TabItem>
                     <TabItem Focusable="False">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
@@ -737,7 +750,7 @@
                                             <TextBlock Text="پرداختی در انتظار: " Foreground="{DynamicResource TextSecondaryBrush}" /><TextBlock Text="{Binding TreasuryOutgoing30}" Foreground="{DynamicResource RedBrush}" FontWeight="SemiBold" Margin="0,0,18,0" />
                                             <TextBlock Text="پوشش: " Foreground="{DynamicResource TextSecondaryBrush}" /><TextBlock Text="{Binding TreasuryCoverage}" Foreground="{DynamicResource GoldLightBrush}" FontWeight="Bold" />
                                         </WrapPanel>
-                                        <TextBlock Text="فرمول: دریافتی ÷ پرداختی × ۱۰۰؛ شامل همهٔ سررسیدگذشته‌ها و امروز تا روز ۳۰. در نبود پرداختی، نسبت نامشخص است (—)." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,8,0,0" TextWrapping="Wrap" />
+                                        <TextBlock Text="فرمول: دریافتی ÷ پرداختی × ۱۰۰؛ شامل همهٔ سررسیدگذشته‌ها و امروز تا روز ۳۰. در نبود پرداختی، نسبت نامشخص است (—)." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" Margin="0,8,0,0" TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Border>
                                 <TextBlock Text="جدول تفکیک سررسید چک‌های در انتظار" FontSize="16" FontWeight="Bold" Margin="0,0,0,8" />
@@ -755,7 +768,8 @@
                         </ScrollViewer>
                     </TabItem>
                     <TabItem Focusable="False">
-                        <Grid Margin="22,14,22,22">
+                        <ScrollViewer x:Name="AlertsViewport" Margin="22,14,22,22" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid MinWidth="650" MinHeight="460" Height="{Binding ViewportHeight, ElementName=AlertsViewport}">
                             <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
                             <StackPanel><TextBlock Text="هشدارهای سررسید چک" FontSize="24" FontWeight="Bold" />
                                 <TextBlock Text="بررسی درون برنامه و فقط بر مبنای چک‌های در انتظار؛ اعلان پس‌زمینه یا پیامک ارسال نمی‌شود." Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,10" TextWrapping="Wrap" />
@@ -768,17 +782,23 @@
                                 <TextBlock Text="{Binding AlertsDescription}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,0" />
                                 <TextBlock Text="{Binding AlertsCount}" VerticalAlignment="Center" Foreground="{DynamicResource GoldLightBrush}" FontWeight="Bold" />
                             </WrapPanel>
-                            <DataGrid Grid.Row="2" ItemsSource="{Binding CheckAlerts}" CanUserReorderColumns="False">
+                            <Grid Grid.Row="2">
+                            <DataGrid ItemsSource="{Binding CheckAlerts}" CanUserReorderColumns="False">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="شماره" Binding="{Binding Number}" Width="120" />
                                     <DataGridTextColumn Header="نوع" Binding="{Binding Kind}" Width="90" />
                                     <DataGridTextColumn Header="طرف حساب" Binding="{Binding Party}" Width="*" MinWidth="150" />
-                                    <DataGridTextColumn Header="سررسید" Binding="{Binding DueDate}" Width="130" />
-                                    <DataGridTextColumn Header="وضعیت زمان" Binding="{Binding Status}" Width="150" />
-                                    <DataGridTextColumn Header="مبلغ · تومان" Binding="{Binding Amount}" Width="170" />
+                                    <DataGridTextColumn Header="سررسید" Binding="{Binding DueDate}" SortMemberPath="DueDateSort" Width="130" />
+                                    <DataGridTextColumn Header="وضعیت زمان" Binding="{Binding Status}" SortMemberPath="Days" Width="150" />
+                                    <DataGridTextColumn Header="مبلغ · تومان" Binding="{Binding Amount}" SortMemberPath="AmountSort" Width="170" />
                                 </DataGrid.Columns>
                             </DataGrid>
+                            <TextBlock Text="چک در انتظاری در این بازه وجود ندارد." Foreground="{DynamicResource TextMutedBrush}" FontSize="14"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                                       Visibility="{Binding HasNoAlerts, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            </Grid>
                         </Grid>
+                        </ScrollViewer>
                     </TabItem>
                     <TabItem Focusable="False">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
@@ -806,13 +826,13 @@
                                 <TextBlock Text="گردش فایل بانکی" FontSize="15" FontWeight="Bold" Margin="0,0,0,8" />
                                 <DataGrid x:Name="BankEntriesGrid" Height="220" CanUserReorderColumns="False">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="شناسه" Binding="{Binding Id}" Width="130" /><DataGridTextColumn Header="تاریخ" Binding="{Binding DateText}" Width="120" />
+                                        <DataGridTextColumn Header="شناسه" Binding="{Binding Id}" Width="130" /><DataGridTextColumn Header="تاریخ" Binding="{Binding DateText}" SortMemberPath="Date" Width="120" />
                                         <DataGridTextColumn Header="ارجاع" Binding="{Binding Reference}" Width="160" /><DataGridTextColumn Header="جهت" Binding="{Binding DirectionText}" Width="90" />
-                                        <DataGridTextColumn Header="مبلغ · تومان" Binding="{Binding AmountText}" Width="180" />
+                                        <DataGridTextColumn Header="مبلغ · تومان" Binding="{Binding AmountText}" SortMemberPath="Amount" Width="180" />
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <TextBlock Text="نتیجهٔ مقایسه · نیازمند بررسی" FontSize="15" FontWeight="Bold" Margin="0,16,0,8" />
-                                <DataGrid x:Name="ReconcileGrid" Height="290" CanUserReorderColumns="False">
+                                <DataGrid x:Name="ReconcileGrid" Height="290" CanUserSortColumns="False" CanUserReorderColumns="False">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="نتیجه" Binding="{Binding Status}" Width="210" /><DataGridTextColumn Header="ارجاع" Binding="{Binding Reference}" Width="130" />
                                         <DataGridTextColumn Header="شناسه بانک" Binding="{Binding BankId}" Width="120" /><DataGridTextColumn Header="شناسه دفتر" Binding="{Binding LedgerId}" Width="120" />
@@ -825,7 +845,8 @@
                         </ScrollViewer>
                     </TabItem>
                     <TabItem Focusable="False">
-                        <Grid Margin="22,14,22,22">
+                        <ScrollViewer x:Name="CounterpartyViewport" Margin="22,14,22,22" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid MinWidth="650" MinHeight="500" Height="{Binding ViewportHeight, ElementName=CounterpartyViewport}">
                             <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
                             <StackPanel>
                                 <TextBlock Text="گزارش چک‌های طرف حساب" FontSize="24" FontWeight="Bold" />
@@ -841,7 +862,8 @@
                                 <TextBlock Text="{Binding CounterpartyAsOf}" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,0" VerticalAlignment="Center" />
                                 <TextBlock Text="{Binding CounterpartyCount}" Foreground="{DynamicResource GoldLightBrush}" FontWeight="Bold" VerticalAlignment="Center" />
                             </WrapPanel>
-                            <DataGrid Grid.Row="3" ItemsSource="{Binding Counterparties}" CanUserReorderColumns="False" EnableRowVirtualization="True">
+                            <Grid Grid.Row="3">
+                            <DataGrid ItemsSource="{Binding Counterparties}" CanUserReorderColumns="False" EnableRowVirtualization="True">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="طرف حساب" Binding="{Binding PartyDisplay}" Width="200" />
                                     <DataGridTextColumn Header="تعداد دریافتی" Binding="{Binding IncomingCount}" Width="110" />
@@ -855,7 +877,12 @@
                                     <DataGridTextColumn Header="پرداختی برگشتی" Binding="{Binding OutgoingReturnedText}" SortMemberPath="OutgoingReturned" Width="170" />
                                 </DataGrid.Columns>
                             </DataGrid>
+                            <TextBlock Text="طرف حسابی با این جست‌وجو پیدا نشد." Foreground="{DynamicResource TextMutedBrush}" FontSize="14"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                                       Visibility="{Binding HasNoCounterparties, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            </Grid>
                         </Grid>
+                        </ScrollViewer>
                     </TabItem>
                 </TabControl>
             </Grid>

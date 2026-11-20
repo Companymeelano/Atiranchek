@@ -33,6 +33,7 @@ public sealed class CheckItem
     public string AmountText => PersianFormatting.Money(Amount);
     public string DueDateText => PersianFormatting.PersianDate(DueDate);
     public string RiskText => HasRiskScore ? PersianFormatting.Number(Risk) : "—";
+    public int? RiskSort => HasRiskScore ? Risk : null;
 }
 
 public sealed class SaleItem

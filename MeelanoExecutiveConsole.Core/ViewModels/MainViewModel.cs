@@ -70,9 +70,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<CheckAlertService.Alert> CheckAlerts { get; }
     public string AlertsDescription => $"بررسی تا {PersianFormatting.Number(alertDays)} روز آینده به‌همراه همهٔ موارد سررسیدگذشته · {PersianFormatting.PersianDate(alertsAsOf)}";
     public string AlertsCount => PersianFormatting.Number(CheckAlerts.Count);
+    public bool HasNoAlerts => CheckAlerts.Count == 0;
     public IReadOnlyList<CounterpartyReportService.Row> Counterparties => visibleCounterparties;
     public string CounterpartyAsOf => $"تاریخ مبنا: {PersianFormatting.PersianDate(counterpartiesAsOf)}";
     public string CounterpartyCount => PersianFormatting.Number(visibleCounterparties.Count);
+    public bool HasNoCounterparties => visibleCounterparties.Count == 0;
     public string CounterpartyQuery
     {
         get => counterpartyQuery;
@@ -370,6 +372,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         CheckAlerts.Clear();
         foreach (var alert in alerts) CheckAlerts.Add(alert);
         OnPropertyChanged(nameof(AlertsCount));
+        OnPropertyChanged(nameof(HasNoAlerts));
         OnPropertyChanged(nameof(AlertsDescription));
     }
 
@@ -388,6 +391,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             .Where(row => PersianText.NormalizeForSearch(row.Party).Contains(query, StringComparison.Ordinal)).ToArray();
         OnPropertyChanged(nameof(Counterparties));
         OnPropertyChanged(nameof(CounterpartyCount));
+        OnPropertyChanged(nameof(HasNoCounterparties));
     }
 
     private void RefreshTreasury()

@@ -24,6 +24,31 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         ThemeManager.Initialize();
+        if (e.Args.Contains("--verify-ui-layout", StringComparer.Ordinal))
+        {
+            StartupUri = null;
+            base.OnStartup(e);
+            var window = new Views.MainWindow { WindowState = WindowState.Normal, Width = 1280, Height = 800 };
+            window.Loaded += (_, _) => window.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
+            {
+                try
+                {
+                    window.VerifyUiLayout();
+                    window.Width = 850;
+                    window.Height = 600;
+                    window.UpdateLayout();
+                    window.VerifyUiLayout();
+                    Shutdown(0);
+                }
+                catch (Exception exception)
+                {
+                    WriteError(exception);
+                    Shutdown(1);
+                }
+            }));
+            window.Show();
+            return;
+        }
         base.OnStartup(e);
     }
 

@@ -10,6 +10,8 @@ public static class CheckAlertService
         public string Party => Check.Party;
         public string Kind => Check.Kind.ToString();
         public string DueDate => Check.DueDateText;
+        public DateTime DueDateSort => Check.DueDate;
+        public decimal AmountSort => Check.Amount;
         public string Amount => Check.AmountText;
         public string Status => Days < 0 ? $"{PersianFormatting.Number(-Days)} روز گذشته" : Days == 0 ? "امروز" : $"{PersianFormatting.Number(Days)} روز آینده";
     }

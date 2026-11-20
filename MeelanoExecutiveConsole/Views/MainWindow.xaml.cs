@@ -33,6 +33,68 @@ public partial class MainWindow : Window
         UpdateThemeToggle();
     }
 
+    // Used by the Windows installer smoke test; no data is loaded or modified.
+    internal void VerifyUiLayout()
+    {
+        UpdateLayout();
+        static (double Left, double Right) HorizontalBounds(FrameworkElement element)
+        {
+            if (!element.IsVisible || element.ActualWidth <= 0 || element.ActualHeight <= 0)
+                throw new InvalidOperationException("A required layout element is not visible.");
+            var first = element.PointToScreen(new Point(0, 0)).X;
+            var second = element.PointToScreen(new Point(element.ActualWidth, 0)).X;
+            return (Math.Min(first, second), Math.Max(first, second));
+        }
+        var sidebar = HorizontalBounds(SidebarPanel);
+        var content = HorizontalBounds(ContentArea);
+        if (sidebar.Left < content.Right - 2)
+            throw new InvalidOperationException("Sidebar is not to the right of the content area.");
+        var title = HorizontalBounds(TitleBar);
+        foreach (var control in new FrameworkElement[] { SqlConnectionButton, ThemeToggleButton, WindowControls })
+        {
+            var bounds = HorizontalBounds(control);
+            if (bounds.Left < title.Left - 2 || bounds.Right > title.Right + 2)
+                throw new InvalidOperationException("A title-bar control is outside the title bar.");
+        }
+        var family = (FontFamily)Application.Current.FindResource("PersianFont");
+        var typeface = new Typeface(family, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
+        if (!typeface.TryGetGlyphTypeface(out var glyph) ||
+            !glyph.FamilyNames.Values.Any(name => name.Contains("Vazirmatn", StringComparison.OrdinalIgnoreCase)) ||
+            !glyph.CharacterToGlyphMap.ContainsKey('ک') || !glyph.CharacterToGlyphMap.ContainsKey('ی'))
+            throw new InvalidOperationException("The embedded Persian font could not be loaded.");
+        if (Application.GetResourceStream(new Uri("pack://application:,,,/MeelanoExecutiveConsole;component/Resources/Fonts/OFL.txt")) is not { } license)
+            throw new InvalidOperationException("Font license resource is missing.");
+        license.Stream.Dispose();
+    }
+
+    private void QuickHelp_Click(object sender, RoutedEventArgs e)
+    {
+        MessageBox.Show(this,
+            "راهنمای سریع میلانو\n\n" +
+            "• نمای کلی: فروش و چک‌های در انتظارِ منبع فعلی.\n" +
+            "• مرکز چک‌ها: جست‌وجو، فیلتر، رأس‌گیری، CSV و چاپ. تغییر وضعیت SQL غیرفعال است.\n" +
+            "• تحلیل خزانه و هشدار سررسید: محاسبه فقط از چک‌های موجود؛ ماندهٔ بانک نیست.\n" +
+            "• بانک و مغایرت: مقایسهٔ آزمایشی دو فایل CSV، بدون ثبت سند و نیازمند بررسی.\n" +
+            "• گزارش طرف حساب: گروه‌بندی نام دقیق؛ اشخاص هم‌نام تفکیک نمی‌شوند.\n\n" +
+            "اتصال SQL نسخهٔ آزمایشی اعتبار گواهی سرور را بررسی نمی‌کند؛ فقط از شبکه و حساب آزمایشی استفاده کنید. برای خروج از تمام‌صفحه F11 یا Esc را بزنید.",
+            "راهنمای سریع", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    private void FontLicense_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var resource = Application.GetResourceStream(new Uri("pack://application:,,,/MeelanoExecutiveConsole;component/Resources/Fonts/OFL.txt"));
+            if (resource is null) throw new IOException("Font license not found.");
+            using var reader = new StreamReader(resource.Stream, Encoding.UTF8);
+            MessageBox.Show(this, reader.ReadToEnd(), "Vazirmatn · SIL Open Font License 1.1", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (IOException)
+        {
+            MessageBox.Show(this, "متن مجوز در مخزن برنامه و فایل OFL.txt موجود است.", "مجوز فونت", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
     private void ThemeToggle_Click(object sender, RoutedEventArgs e)
     {
         ThemeManager.Toggle();

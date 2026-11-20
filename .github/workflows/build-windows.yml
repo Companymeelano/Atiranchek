@@ -140,6 +140,17 @@ jobs:
           if ($appProcess.HasExited) { Fail-SmokeTest "Installed application exited with code $($appProcess.ExitCode)." }
           Stop-Process -Id $appProcess.Id -Force
 
+          # Verify actual physical sidebar placement and the embedded Persian font at two widths.
+          $layoutProcess = Start-Process -FilePath $installedExe -ArgumentList '--verify-ui-layout' -PassThru
+          if (-not $layoutProcess.WaitForExit(30000)) {
+            Stop-Process -Id $layoutProcess.Id -Force
+            Fail-SmokeTest 'UI layout verification timed out.'
+          }
+          if ($layoutProcess.ExitCode -ne 0) {
+            $details = if (Test-Path $log) { Get-Content $log -Raw } else { 'No diagnostic log.' }
+            Fail-SmokeTest "UI layout verification failed with code $($layoutProcess.ExitCode): $details"
+          }
+
       - name: Upload installable setup artifact
         uses: actions/upload-artifact@v7
         with:
