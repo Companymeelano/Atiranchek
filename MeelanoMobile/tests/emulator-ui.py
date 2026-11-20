@@ -114,9 +114,11 @@ except Exception as exc:
             if text:
                 labels.append(text[:100])
         print('::error title=Visible UI::' + ' | '.join(labels)[:1200].replace('\n', ' '), flush=True)
-        crashes = adb('logcat', '-d', '-s', 'AndroidRuntime:E')
-        if 'FATAL EXCEPTION' in crashes:
-            print('::error title=Android crash::' + crashes[-3000:].replace('\n', ' ')[:2000], flush=True)
+        logs = adb('logcat', '-d', '-v', 'brief')
+        interesting = [line for line in logs.splitlines() if any(t in line.lower() for t in ('fatal', 'exception', 'dotnet', 'monodroid', 'meelano.executive.mobile'))]
+        if interesting:
+            safe = ' | '.join(interesting[-18:]).replace(os.environ.get('SQL_TEST_PASSWORD', 'NO_SECRET'), '[masked]')
+            print('::error title=Android diagnostic::' + safe[-3500:].replace('\n', ' '), flush=True)
     except Exception:
         pass
     raise
