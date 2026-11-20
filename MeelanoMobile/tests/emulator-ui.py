@@ -28,11 +28,12 @@ def scroll_page(root):
     adb('shell', 'input', 'swipe', str(x), str(bottom), str(x), str(top), '500')
 
 
-def find(text, tries=8, scroll=False):
+def find(text, tries=8, scroll=False, exact=False):
     for attempt in range(tries):
         root = dump()
         for node in root.iter('node'):
-            if text in (node.get('text', '') + ' ' + node.get('content-desc', '')):
+            label = node.get('text', '') or node.get('content-desc', '')
+            if (label == text if exact else text in label):
                 bounds = list(map(int, re.findall(r'\d+', node.get('bounds', ''))))
                 if len(bounds) == 4 and bounds[2] > bounds[0] and bounds[3] > bounds[1]:
                     return ((bounds[0] + bounds[2]) // 2, (bounds[1] + bounds[3]) // 2)
@@ -104,7 +105,7 @@ def run_tests():
         raise RuntimeError('The password input did not receive focus.')
     adb('shell', 'input', 'text', os.environ['SQL_TEST_PASSWORD'])
     tap('بارگذاری فقط', scroll=True)
-    tap('ادامه')
+    tap('ادامه', exact=True)
     find('بارگذاری موفق', tries=90)
     tap('باشه')
     find('snapshot SQL', tries=15)
