@@ -76,6 +76,8 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: |
             set -euo pipefail
+            adb shell wm size 1080x2400
+            adb shell wm density 420
             adb install -r MeelanoMobile/artifacts/MEELANO-Android-demo.apk
             adb logcat -c
             adb shell monkey -p com.meelano.executive.mobile -c android.intent.category.LAUNCHER 1
