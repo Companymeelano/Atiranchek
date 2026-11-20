@@ -97,7 +97,15 @@ def run_tests():
     else:
         raise RuntimeError('Password input is not visible after scrolling.')
     adb('shell', 'input', 'text', os.environ['SQL_TEST_PASSWORD'])
-    tap('بارگذاری فقط', scroll=True)
+    # Report only fixture field values, never the password.
+    root = dump()
+    fields = [n.get('text', '') if n.get('password') != 'true' else '[secret]' for n in root.iter('node') if n.get('class', '').endswith('EditText')]
+    bx, by = find('بارگذاری فقط', scroll=True)
+    print('::warning title=SQL form test::Fields ' + str(fields) + f'; button at {bx},{by}', flush=True)
+    adb('shell', 'input', 'tap', str(bx), str(by))
+    time.sleep(2)
+    after = [n.get('text', '') for n in dump().iter('node') if n.get('text', '') and not n.get('class', '').endswith('EditText')]
+    print('::warning title=SQL tap result::' + ' | '.join(after)[:700].replace('\n', ' '), flush=True)
     tap('ادامه')
     find('بارگذاری موفق', tries=90)
     tap('باشه')
