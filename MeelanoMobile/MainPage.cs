@@ -243,8 +243,8 @@ public sealed class MainPage : ContentPage
             }
             finally { busy = false; menu.IsEnabled = true; connect.IsEnabled = true; }
         };
-        SetScroll(Card(Column(Caption("SQL Server · فقط برای آزمایش", 18, Gold, true), Caption("ارتباط رمزگذاری می‌شود اما اعتبار گواهی و هویت سرور بررسی نمی‌شود. فقط شبکهٔ ایزوله و حساب آزمایشی؛ هرگز اینترنت عمومی یا محیط عملیاتی.", 13, Gold))),
-            Caption("SQL Login؛ برای هر بار تازه‌سازی مشخصات را وارد کنید. رمز و مشخصات اتصال ذخیره نمی‌شوند. نام دیتابیس لازم است؛ انتخاب جدول و ستون لازم نیست.", 13, Muted),
+        SetScroll(Card(Column(Caption("SQL Server · فقط برای آزمایش", 18, Gold, true), Caption("فقط شبکه و حساب آزمایشی؛ اعتبار گواهی و هویت سرور بررسی نمی‌شود.", 13, Gold))),
+            Caption("SQL Login و نام دیتابیس را وارد کنید؛ مشخصات ذخیره نمی‌شوند.", 13, Muted),
             host, port, database, user, password, progress,
             Caption("دو نمای MEELANO_Checks و MEELANO_Sales با قرارداد مستند لازم است. سقف موبایل ۲۵٬۰۰۰ ردیف در هر نماست؛ دادهٔ اضافه به‌جای برش پنهان رد می‌شود. Windows Authentication و جست‌وجوی شبکه در این نسخه موجود نیست.", 12, Muted));
         // Keep the primary action accessible while the form itself scrolls on short screens.
