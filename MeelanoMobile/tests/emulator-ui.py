@@ -63,9 +63,6 @@ def fill(placeholder, value):
     nodes = [n for n in dump().iter('node') if n.get('class', '').endswith('EditText')]
     if not any(n.get('focused') == 'true' and n.get('text') == value for n in nodes):
         raise RuntimeError('The expected form field did not receive input: ' + placeholder)
-    # Input invoked the IME; hide it before locating the next field.
-    adb('shell', 'input', 'keyevent', 'KEYCODE_BACK')
-    time.sleep(1)
     print('::notice title=Android UI input::Completed ' + placeholder, flush=True)
 
 

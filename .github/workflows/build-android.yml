@@ -73,9 +73,12 @@ jobs:
           api-level: 35
           arch: x86_64
           disable-animations: true
+          disable-spellchecker: true
+          enable-hw-keyboard: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: |
             set -euo pipefail
+            adb shell settings put secure show_ime_with_hard_keyboard 0
             adb shell wm size 1080x2400
             adb shell wm density 420
             adb install -r MeelanoMobile/artifacts/MEELANO-Android-demo.apk
