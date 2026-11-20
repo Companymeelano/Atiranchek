@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>MeelanoExecutiveConsole.Specs</RootNamespace>
+    <AssemblyName>MeelanoExecutiveConsole.Specs</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MeelanoExecutiveConsole.Core\MeelanoExecutiveConsole.Core.csproj" />
+  </ItemGroup>
+</Project>

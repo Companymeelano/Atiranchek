@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeelanoExecutiveConsole", "MeelanoExecutiveConsole.csproj", "{B0D51F5C-AE09-4D50-9C1B-A05EC39D71A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeelanoExecutiveConsole.Core", "..\MeelanoExecutiveConsole.Core\MeelanoExecutiveConsole.Core.csproj", "{7B73EB04-C8F2-4C32-9BDF-15FE994E7A04}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeelanoExecutiveConsole.Specs", "..\MeelanoExecutiveConsole.Specs\MeelanoExecutiveConsole.Specs.csproj", "{DB3D4158-91F4-4A72-B579-A7B0AF5B9178}"
+EndProject
+Global
+ GlobalSection(SolutionConfigurationPlatforms) = preSolution
+  Debug|Any CPU = Debug|Any CPU
+  Release|Any CPU = Release|Any CPU
+ EndGlobalSection
+ GlobalSection(ProjectConfigurationPlatforms) = postSolution
+  {B0D51F5C-AE09-4D50-9C1B-A05EC39D71A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+  {B0D51F5C-AE09-4D50-9C1B-A05EC39D71A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+  {B0D51F5C-AE09-4D50-9C1B-A05EC39D71A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+  {B0D51F5C-AE09-4D50-9C1B-A05EC39D71A1}.Release|Any CPU.Build.0 = Release|Any CPU
+  {7B73EB04-C8F2-4C32-9BDF-15FE994E7A04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+  {7B73EB04-C8F2-4C32-9BDF-15FE994E7A04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+  {7B73EB04-C8F2-4C32-9BDF-15FE994E7A04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+  {7B73EB04-C8F2-4C32-9BDF-15FE994E7A04}.Release|Any CPU.Build.0 = Release|Any CPU
+  {DB3D4158-91F4-4A72-B579-A7B0AF5B9178}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+  {DB3D4158-91F4-4A72-B579-A7B0AF5B9178}.Debug|Any CPU.Build.0 = Debug|Any CPU
+  {DB3D4158-91F4-4A72-B579-A7B0AF5B9178}.Release|Any CPU.ActiveCfg = Release|Any CPU
+  {DB3D4158-91F4-4A72-B579-A7B0AF5B9178}.Release|Any CPU.Build.0 = Release|Any CPU
+ EndGlobalSection
+EndGlobal
