@@ -47,31 +47,51 @@ def fill(placeholder, value):
     adb('shell', 'input', 'keyevent', 'KEYCODE_BACK')
 
 
-find('MEELANO', tries=15)
-section('مرکز چک')
-find('RC-2401')
-section('فروش')
-find('جمع فروش')
-section('رادار نقدینگی')
-find('مانده')
-section('تحلیل خزانه')
-find('نسبت پوشش')
-section('هشدار سررسید')
-find('محاسبه')
-section('طرف حساب')
-find('مانده')
-section('بانک و مغایرت')
-find('انتخاب CSV بانک')
-section('اتصال SQL')
-fill('IP یا نام میزبان SQL', '10.0.2.2')
-fill('نام پایگاه داده', 'MEELANO_TEST')
-fill('نام کاربری SQL', 'meelanoci')
-fill('رمز SQL', os.environ['SQL_TEST_PASSWORD'])
-tap('بارگذاری فقط', scroll=True)
-tap('ادامه')
-find('بارگذاری موفق', tries=90)
-tap('باشه')
-find('snapshot SQL', tries=15)
-section('مرکز چک')
-find('T-001')
-print('UI navigation and read-only SQL fixture import passed.')
+def run_tests():
+    find('MEELANO', tries=15)
+    section('مرکز چک')
+    find('RC-2401')
+    section('فروش')
+    find('جمع فروش')
+    section('رادار نقدینگی')
+    find('مانده')
+    section('تحلیل خزانه')
+    find('نسبت پوشش')
+    section('هشدار سررسید')
+    find('محاسبه')
+    section('طرف حساب')
+    find('مانده')
+    section('بانک و مغایرت')
+    find('انتخاب CSV بانک')
+    section('اتصال SQL')
+    fill('IP یا نام میزبان SQL', '10.0.2.2')
+    fill('نام پایگاه داده', 'MEELANO_TEST')
+    fill('نام کاربری SQL', 'meelanoci')
+    fill('رمز SQL', os.environ['SQL_TEST_PASSWORD'])
+    tap('بارگذاری فقط', scroll=True)
+    tap('ادامه')
+    find('بارگذاری موفق', tries=90)
+    tap('باشه')
+    find('snapshot SQL', tries=15)
+    section('مرکز چک')
+    find('T-001')
+    print('UI navigation and read-only SQL fixture import passed.')
+
+
+try:
+    run_tests()
+except Exception as exc:
+    print('::error title=Android UI test::' + str(exc).replace('\n', ' '), flush=True)
+    try:
+        root = dump()
+        labels = []
+        for node in root.iter('node'):
+            if node.get('class', '').endswith('EditText'):
+                continue
+            text = node.get('text', '') or node.get('content-desc', '')
+            if text:
+                labels.append(text[:100])
+        print('::error title=Visible UI::' + ' | '.join(labels)[:1200].replace('\n', ' '), flush=True)
+    except Exception:
+        pass
+    raise
